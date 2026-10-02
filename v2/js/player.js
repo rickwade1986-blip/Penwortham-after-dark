@@ -1,17 +1,45 @@
 PAD2.PlayerController=class{
   constructor(scene,sprite){
-    this.scene=scene;this.sprite=sprite;this.hero=PAD2.state.data.hero;this.direction='down';
+    this.scene=scene;
+    this.sprite=sprite;
+    this.hero=PAD2.state.data.hero;
+    this.direction='down';
+    this.frame=0;
+    this.stepTimer=0;
+    this.applyTexture();
   }
+
+  key(){
+    return `${this.hero}-${this.direction}-${this.frame}`;
+  }
+
+  applyTexture(){
+    const key=this.key();
+    if(this.scene.textures.exists(key))this.sprite.setTexture(key);
+    const scale=this.hero==='laura'?0.42:0.40;
+    this.sprite.setScale(scale);
+    this.sprite.body?.setSize(90,72,true);
+  }
+
   update(dt){
     if(PAD2.runtime.pausedForDialogue){
-      this.sprite.setVelocity(0,0);return;
+      this.sprite.setVelocity(0,0);
+      return;
     }
+
     let x=PAD2.runtime.input.x,y=PAD2.runtime.input.y;
+    const keys=this.scene.keys;
+    if(keys){
+      x+=(keys.D.isDown||keys.RIGHT.isDown?1:0)-(keys.A.isDown||keys.LEFT.isDown?1:0);
+      y+=(keys.S.isDown||keys.DOWN.isDown?1:0)-(keys.W.isDown||keys.UP.isDown?1:0);
+    }
+
     const mag=Math.hypot(x,y);
     if(mag<PAD2.config.player.deadzone){x=0;y=0}
     else if(mag>1){x/=mag;y/=mag}
 
-    const max=PAD2.config.player.maxSpeed;
+    const speedMul=PAD2.characters[this.hero]?.speed||1;
+    const max=PAD2.config.player.maxSpeed*speedMul;
     const targetX=x*max,targetY=y*max;
     const moving=Math.abs(x)+Math.abs(y)>.001;
     const response=moving?PAD2.config.player.accel:PAD2.config.player.decel;
@@ -26,15 +54,33 @@ PAD2.PlayerController=class{
     }
 
     if(moving){
-      this.direction=Math.abs(x)>Math.abs(y)?(x<0?'left':'right'):(y<0?'up':'down');
+      const nextDir=Math.abs(x)>Math.abs(y)?(x<0?'left':'right'):(y<0?'up':'down');
+      if(nextDir!==this.direction){
+        this.direction=nextDir;
+        this.frame=0;
+        this.stepTimer=0;
+      }
+      this.stepTimer+=dt;
+      if(this.stepTimer>.16){
+        this.stepTimer=0;
+        this.frame=1-this.frame;
+      }
+    }else{
+      this.frame=0;
+      this.stepTimer=0;
     }
+
+    this.applyTexture();
+    this.sprite.setDepth(100+this.sprite.y*.01);
   }
+
   swap(){
     this.hero=this.hero==='rick'?'laura':'rick';
-    PAD2.state.data.hero=this.hero;PAD2.state.save();
-    this.sprite.setTint(this.hero==='rick'?0x2f6448:0xb94882);
-    document.getElementById('hero-name').textContent=this.hero.toUpperCase();
-    document.getElementById('hero-name').style.color=this.hero==='rick'?'#b7ff39':'#ff4fa3';
-    PAD2.abilities?.refreshButton();
+    PAD2.state.data.hero=this.hero;
+    PAD2.state.save();
+    this.frame=0;
+    this.applyTexture();
+    PAD2.ui?.refresh?.();
+    PAD2.abilities?.refreshButton?.();
   }
 };
