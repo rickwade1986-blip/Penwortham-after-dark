@@ -36,7 +36,7 @@
     return {
       hero:'rick',quest:0,hp:6,maxHp:6,score:0,
       items:{car:false,glasses:false,milk:false,wine:false,beat:false},
-      seen:{},area:WORLD.startArea,sauvTimer:0,beatPower:false,
+      seen:{},area:WORLD.startArea,sauvTimer:0,coffeeTimer:0,guitarTimer:0,beatPower:false,
       firstBoot:true,won:false
     };
   }
@@ -62,6 +62,8 @@
     ui.hearts.textContent='♥'.repeat(Math.max(0,state.hp))+'♡'.repeat(Math.max(0,state.maxHp-state.hp));
     const bits=[];
     if(state.sauvTimer>0)bits.push('SAUVIGNON MODE');
+    if(state.coffeeTimer>0)bits.push('4AM CAFFEINE');
+    if(state.guitarTimer>0)bits.push('AMPED');
     if(state.beatPower)bits.push('DUSTY BEAT');
     if(state.items.milk)bits.push('MILK ✓');
     ui.buff.textContent=bits.join(' · ');
@@ -161,6 +163,7 @@
     create(){
       activeScene=this;
       ART.install(this);
+      this.keys=this.input.keyboard?.addKeys('W,A,S,D,UP,DOWN,LEFT,RIGHT,J,K,E');
       this.physics.world.setBounds(0,0,this.area.size[0],this.area.size[1]);
       this.cameras.main.setBounds(0,0,this.area.size[0],this.area.size[1]);
       this.cameras.main.setBackgroundColor(this.area.kind==='outdoor'?'#16251d':'#17131d');
@@ -285,15 +288,18 @@
         case'table':
           this.add.circle(p.x,p.y,45,0x654a38).setStrokeStyle(4,0x21171b).setDepth(12);break;
         case'coffee':
-          this.add.circle(p.x,p.y,19,0xf0eadf).setStrokeStyle(4,0x3e2a22).setDepth(14);this.add.circle(p.x,p.y,12,0x5d382b).setDepth(15);break;
+          this.add.circle(p.x,p.y,19,0xf0eadf).setStrokeStyle(4,0x3e2a22).setDepth(14);this.add.circle(p.x,p.y,12,0x5d382b).setDepth(15);
+          this.interactables.push({x:p.x,y:p.y,r:82,type:'coffee',data:p});break;
         case'milk':
           this.add.image(p.x,p.y,'milk-pickup').setDisplaySize(62,62).setDepth(15);this.interactables.push({x:p.x,y:p.y,r:90,type:'milk',data:p});break;
         case'wine':
           this.add.image(p.x,p.y,'wine-pickup').setDisplaySize(68,68).setDepth(15);this.interactables.push({x:p.x,y:p.y,r:90,type:'wine',data:p});break;
         case'guitar':
-          this.add.text(p.x,p.y,'🎸',{fontSize:'46px'}).setOrigin(.5).setDepth(15);break;
+          this.add.text(p.x,p.y,'🎸',{fontSize:'46px'}).setOrigin(.5).setDepth(15);
+          this.interactables.push({x:p.x,y:p.y,r:90,type:'guitar',data:p});break;
         case'steam':
-          for(let i=0;i<4;i++)this.add.circle(p.x-45+i*30,p.y,18,0xffffff,.12).setDepth(14);break;
+          for(let i=0;i<4;i++)this.add.circle(p.x-45+i*30,p.y,18,0xffffff,.12).setDepth(14);
+          this.interactables.push({x:p.x,y:p.y+50,r:105,type:'sauna',data:p});break;
         case'palm':
           g.fillStyle(0x8f6541);g.fillRect(p.x-5,p.y-10,10,80);g.lineStyle(12,0x3c8b58);for(let a=0;a<6;a++){const ang=a*Math.PI/3;g.lineBetween(p.x,p.y-10,p.x+Math.cos(ang)*48,p.y-10+Math.sin(ang)*28)}break;
         case'roast':
@@ -374,8 +380,9 @@
 
       if(it.type==='npc'){
         const n=it.data;
+        const heroLines=state.hero==='rick'?(n.rickLines||n.lines):(n.lauraLines||n.lines);
         if(n.id==='andrew'&&state.quest===3){
-          openDialogue(n.name,n.lines,()=>this.completeQuest(4,'beat'));return
+          openDialogue(n.name,heroLines,()=>this.completeQuest(4,'beat'));return
         }
         if((n.id==='will'||n.id==='denise')&&state.quest===2){
           state.seen[n.id]=true;save();
@@ -383,9 +390,9 @@
             if(state.seen.will&&state.seen.denise&&state.quest===2)this.completeQuest(3,'wine');
             else showToast(n.id==='will'?'Now find Denise.':'Now find Will.',850)
           };
-          openDialogue(n.name,n.lines,after);return
+          openDialogue(n.name,heroLines,after);return
         }
-        openDialogue(n.name,n.lines);return
+        openDialogue(n.name,heroLines);return
       }
 
       if(it.type==='car'){
@@ -405,6 +412,38 @@
           state.seen.denise=true;save();
           openDialogue('LAURA',['Tactical Sauvignon acquired.','Now find Will as well.']);
         }else{state.sauvTimer=12;setStatus();showToast('Sauvignon topped up.',800)}
+        return
+      }
+
+      if(it.type==='coffee'){
+        if(state.hero==='rick'){
+          state.coffeeTimer=14;save();setStatus();
+          openDialogue('RICK',['Coffee at this hour? Excellent.','Laura: this is exactly how 4am happens.']);
+          showToast('RICK: CAFFEINATED',900);
+        }else{
+          openDialogue('LAURA',['No. We are not encouraging him.','The coffee remains safely on the table.']);
+        }
+        return
+      }
+
+      if(it.type==='guitar'){
+        if(state.hero==='laura'){
+          state.guitarTimer=14;save();setStatus();
+          openDialogue('LAURA',['Oh, finally. Something useful.','Laura plugs in. The room immediately regrets having walls.']);
+          showToast('LAURA: AMPED',900);
+        }else{
+          openDialogue('RICK',['I could absolutely play that.','Laura: no.']);
+        }
+        return
+      }
+
+      if(it.type==='sauna'){
+        if(state.hero==='laura'){
+          state.hp=Math.min(state.maxHp,state.hp+2);save();setStatus();
+          openDialogue('LAURA',['Sauna bloke: I once did twelve hours in here.','Laura: did ye aye.','HP restored through concentrated disbelief.']);
+        }else{
+          openDialogue('RICK',['It is approximately nine thousand degrees in here.','Laura seems completely unbothered.']);
+        }
         return
       }
 
@@ -451,20 +490,22 @@
       if(state.hero==='rick'){
         this.attackLock=.23;
         this.animateAttack();
-        const word=state.beatPower?'ANDREW 3000!':Phaser.Utils.Array.GetRandom(['BARS!','OI!','YEAH!','MIC CHECK!']);
+        const powered=state.beatPower||state.coffeeTimer>0;
+        const word=state.beatPower?'ANDREW 3000!':state.coffeeTimer>0?'4AM BARS!':Phaser.Utils.Array.GetRandom(['BARS!','OI!','YEAH!','MIC CHECK!']);
         const t=this.add.text(this.player.x+v.x*36,this.player.y-35+v.y*36,word,{
           fontFamily:'Bangers',fontSize:state.beatPower?'22px':'18px',color:'#11150a',backgroundColor:'#b6ff3b',
           padding:{x:7,y:4},stroke:'#11150a',strokeThickness:1
         }).setOrigin(.5).setDepth(65);
-        this.physics.add.existing(t);t.body.setVelocity(v.x*500,v.y*500);t.body.setCircle(18);t.damage=state.beatPower?2.2:1.45;
+        this.physics.add.existing(t);t.body.setVelocity(v.x*(state.coffeeTimer>0?620:500),v.y*(state.coffeeTimer>0?620:500));t.body.setCircle(18);t.damage=powered?2.2:1.45;
         this.time.delayedCall(850,()=>t.active&&t.destroy());
         if(this.boss)this.physics.add.overlap(t,this.boss,(shot)=>this.hitBoss(shot),null,this);
         this.burst(this.player.x+v.x*28,this.player.y-30+v.y*28,'YO',4);
       }else{
         this.attackLock=.38;
         this.animateAttack();
-        const radius=state.sauvTimer>0?165:138;
-        const damage=state.sauvTimer>0?3.4:2.45;
+        const boosted=state.sauvTimer>0||state.guitarTimer>0;
+        const radius=boosted?175:138;
+        const damage=state.sauvTimer>0?3.5:state.guitarTimer>0?3.1:2.45;
 
         for(let i=0;i<3;i++){
           const ring=this.add.circle(this.player.x,this.player.y-22,18,0xff4fa3,.03).setStrokeStyle(5-i,0xff4fa3,.95-i*.2).setDepth(63);
@@ -485,7 +526,7 @@
             this.time.delayedCall(90,()=>this.boss?.active&&this.boss.setVelocity(0));
           }
         }
-        showToast(state.sauvTimer>0?'SAUV RIFF!':'GUITAR RIFF!',450);
+        showToast(state.sauvTimer>0?'SAUV RIFF!':state.guitarTimer>0?'AMPED RIFF!':'GUITAR RIFF!',450);
       }
     }
 
@@ -590,16 +631,18 @@
       const dt=Math.min(.034,dtMs/1000);
       this.attackLock=Math.max(0,this.attackLock-dt);this.hurtLock=Math.max(0,this.hurtLock-dt);
       state.sauvTimer=Math.max(0,(state.sauvTimer||0)-dt);
+      state.coffeeTimer=Math.max(0,(state.coffeeTimer||0)-dt);
+      state.guitarTimer=Math.max(0,(state.guitarTimer||0)-dt);
       if(!this.player)return;
 
       // Important: dialogue really pauses the world. No boss movement, no attacks, no damage.
       if(dialogue){this.player.setVelocity(0);setStatus();return}
 
-      const k=this.input.keyboard?.addKeys('W,A,S,D,UP,DOWN,LEFT,RIGHT,J,K,E');
+      const k=this.keys;
       let ix=input.x+(k?.D?.isDown||k?.RIGHT?.isDown?1:0)-(k?.A?.isDown||k?.LEFT?.isDown?1:0);
       let iy=input.y+(k?.S?.isDown||k?.DOWN?.isDown?1:0)-(k?.W?.isDown||k?.UP?.isDown?1:0);
       const mag=Math.hypot(ix,iy);if(mag>1){ix/=mag;iy/=mag}
-      const speed=state.sauvTimer>0?290:228;
+      const speed=(state.sauvTimer>0||state.coffeeTimer>0)?290:228;
       this.player.setVelocity(ix*speed,iy*speed);
 
       if(Math.abs(ix)+Math.abs(iy)>.08){
