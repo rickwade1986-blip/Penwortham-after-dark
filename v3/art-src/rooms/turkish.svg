@@ -1,0 +1,44 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1800 1100">
+<defs>
+  <linearGradient id="night" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#243a34"/><stop offset="1" stop-color="#13241d"/></linearGradient>
+  <linearGradient id="warmwood" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#8c6345"/><stop offset=".55" stop-color="#5c3f31"/><stop offset="1" stop-color="#3a2923"/></linearGradient>
+  <linearGradient id="amber" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#ffd77d"/><stop offset="1" stop-color="#c67b3b"/></linearGradient>
+  <linearGradient id="plum" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#4c3b57"/><stop offset="1" stop-color="#241c2c"/></linearGradient>
+  <linearGradient id="greenGlass" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#5b8d7b"/><stop offset="1" stop-color="#264d41"/></linearGradient>
+  <filter id="roomshadow" x="-30%" y="-30%" width="160%" height="160%"><feDropShadow dx="0" dy="16" stdDeviation="14" flood-color="#000" flood-opacity=".35"/></filter>
+</defs>
+  <rect width="1800" height="1100" fill="#16242a"/>
+  <rect y="0" width="1800" height="300" fill="#24444a"/>
+  <g opacity=".55" stroke="#6cb1b5" stroke-width="4" fill="none">
+    <circle cx="60" cy="150" r="44"/><path d="M60 106L104 150L60 194L16 150Z"/><circle cx="165" cy="150" r="44"/><path d="M165 106L209 150L165 194L121 150Z"/><circle cx="270" cy="150" r="44"/><path d="M270 106L314 150L270 194L226 150Z"/><circle cx="375" cy="150" r="44"/><path d="M375 106L419 150L375 194L331 150Z"/><circle cx="480" cy="150" r="44"/><path d="M480 106L524 150L480 194L436 150Z"/><circle cx="585" cy="150" r="44"/><path d="M585 106L629 150L585 194L541 150Z"/><circle cx="690" cy="150" r="44"/><path d="M690 106L734 150L690 194L646 150Z"/><circle cx="795" cy="150" r="44"/><path d="M795 106L839 150L795 194L751 150Z"/><circle cx="900" cy="150" r="44"/><path d="M900 106L944 150L900 194L856 150Z"/><circle cx="1005" cy="150" r="44"/><path d="M1005 106L1049 150L1005 194L961 150Z"/><circle cx="1110" cy="150" r="44"/><path d="M1110 106L1154 150L1110 194L1066 150Z"/><circle cx="1215" cy="150" r="44"/><path d="M1215 106L1259 150L1215 194L1171 150Z"/><circle cx="1320" cy="150" r="44"/><path d="M1320 106L1364 150L1320 194L1276 150Z"/><circle cx="1425" cy="150" r="44"/><path d="M1425 106L1469 150L1425 194L1381 150Z"/><circle cx="1530" cy="150" r="44"/><path d="M1530 106L1574 150L1530 194L1486 150Z"/><circle cx="1635" cy="150" r="44"/><path d="M1635 106L1679 150L1635 194L1591 150Z"/><circle cx="1740" cy="150" r="44"/><path d="M1740 106L1784 150L1740 194L1696 150Z"/><circle cx="1845" cy="150" r="44"/><path d="M1845 106L1889 150L1845 194L1801 150Z"/>
+  </g>
+  <rect y="300" width="1800" height="800" fill="#372b28"/>
+
+  <rect x="125" y="85" width="620" height="125" rx="18" fill="#111319" stroke="#d3a051" stroke-width="6"/>
+  <text x="435" y="145" text-anchor="middle" font-family="Georgia,serif" font-size="55" font-weight="700" fill="#f0e7d7">THE TURKISH</text>
+  <text x="435" y="184" text-anchor="middle" font-family="Arial" font-size="17" font-weight="700" fill="#d8b36f">charcoal · bread · accidental banquet</text>
+
+  <g filter="url(#roomshadow)">
+    <rect x="1120" y="95" width="510" height="285" rx="24" fill="#2c3033" stroke="#17131b" stroke-width="13"/>
+    <rect x="1180" y="160" width="390" height="115" rx="14" fill="#15171a"/>
+    <g stroke="#e17c43" stroke-width="8"><path d="M1220 238h310"/><path d="M1245 207h260"/></g>
+    <g fill="#efc46b"><circle cx="1260" cy="200" r="14"/><circle cx="1330" cy="225" r="17"/><circle cx="1430" cy="200" r="14"/><circle cx="1510" cy="224" r="16"/></g>
+  </g>
+
+  <g filter="url(#roomshadow)" stroke="#17131b" stroke-width="10">
+    <ellipse cx="410" cy="665" rx="210" ry="110" fill="#76513a"/>
+    <ellipse cx="900" cy="770" rx="230" ry="120" fill="#76513a"/>
+    <ellipse cx="1400" cy="660" rx="205" ry="108" fill="#76513a"/>
+  </g>
+  <g fill="#e9dfce" stroke="#4d382d" stroke-width="5">
+    <ellipse cx="410" cy="635" rx="112" ry="48"/><ellipse cx="900" cy="740" rx="120" ry="50"/><ellipse cx="1400" cy="635" rx="108" ry="46"/>
+  </g>
+  <g fill="#b8613e"><circle cx="370" cy="632" r="20"/><circle cx="432" cy="625" r="18"/><circle cx="860" cy="740" r="22"/><circle cx="928" cy="731" r="20"/><circle cx="1370" cy="633" r="20"/></g>
+  <g fill="#688f4f"><circle cx="465" cy="642" r="16"/><circle cx="968" cy="747" r="16"/><circle cx="1435" cy="640" r="16"/></g>
+
+  <g transform="translate(455 960)" filter="url(#roomshadow)">
+    <rect x="-300" y="-52" width="600" height="104" rx="20" fill="#18151a" stroke="#6b5550" stroke-width="4"/>
+    <text x="0" y="-4" text-anchor="middle" font-family="Arial Black" font-size="22" fill="#f0c66d">ORDERED FOR TWO</text>
+    <text x="0" y="28" text-anchor="middle" font-family="Arial" font-weight="700" font-size="16" fill="#f4efe8">food currently sufficient for a minor wedding</text>
+  </g>
+</svg>

@@ -1,0 +1,44 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1800 1100">
+<defs>
+  <linearGradient id="night" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#243a34"/><stop offset="1" stop-color="#13241d"/></linearGradient>
+  <linearGradient id="warmwood" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#8c6345"/><stop offset=".55" stop-color="#5c3f31"/><stop offset="1" stop-color="#3a2923"/></linearGradient>
+  <linearGradient id="amber" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#ffd77d"/><stop offset="1" stop-color="#c67b3b"/></linearGradient>
+  <linearGradient id="plum" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#4c3b57"/><stop offset="1" stop-color="#241c2c"/></linearGradient>
+  <linearGradient id="greenGlass" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#5b8d7b"/><stop offset="1" stop-color="#264d41"/></linearGradient>
+  <filter id="roomshadow" x="-30%" y="-30%" width="160%" height="160%"><feDropShadow dx="0" dy="16" stdDeviation="14" flood-color="#000" flood-opacity=".35"/></filter>
+</defs>
+  <rect width="1800" height="1100" fill="#20292b"/>
+  <rect x="70" y="65" width="1660" height="970" rx="44" fill="#d7d0c2" stroke="#17131b" stroke-width="18"/>
+  <rect x="110" y="95" width="1580" height="110" rx="18" fill="#1c2728"/>
+  <text x="900" y="163" text-anchor="middle" font-family="Arial Black" font-size="46" fill="#dce7df">LEYLAND ROAD STORES</text>
+
+  <g filter="url(#roomshadow)">
+    <rect x="130" y="250" width="410" height="590" rx="24" fill="#3b5c64" stroke="#17131b" stroke-width="12"/>
+    <g fill="#bcd8d9"><rect x="175" y="300" width="320" height="118" rx="10"/><rect x="175" y="450" width="320" height="118" rx="10"/><rect x="175" y="600" width="320" height="118" rx="10"/></g>
+    <g fill="#f1f6ef" stroke="#6caed1" stroke-width="7"><rect x="245" y="335" width="70" height="96" rx="8"/><rect x="335" y="335" width="70" height="96" rx="8"/><rect x="290" y="487" width="70" height="96" rx="8"/></g>
+    <text x="335" y="785" text-anchor="middle" font-family="Arial Black" font-size="26" fill="#f4efe8">MILK FRIDGE</text>
+  </g>
+
+  <g filter="url(#roomshadow)">
+    <rect x="665" y="270" width="440" height="520" rx="25" fill="#6b5847" stroke="#17131b" stroke-width="12"/>
+    <g stroke="#a28c73" stroke-width="10"><path d="M705 385H1065"/><path d="M705 515H1065"/><path d="M705 645H1065"/></g>
+    <g fill="#c75f63"><rect x="730" y="320" width="58" height="42"/><rect x="835" y="320" width="72" height="42"/><rect x="960" y="320" width="62" height="42"/></g>
+    <g fill="#d6a849"><rect x="735" y="452" width="64" height="39"/><rect x="842" y="452" width="68" height="39"/><rect x="962" y="452" width="56" height="39"/></g>
+    <g fill="#648f63"><rect x="735" y="582" width="61" height="39"/><rect x="840" y="582" width="72" height="39"/><rect x="960" y="582" width="55" height="39"/></g>
+  </g>
+
+  <g filter="url(#roomshadow)">
+    <rect x="1190" y="270" width="440" height="235" rx="24" fill="#5f4a3a" stroke="#17131b" stroke-width="12"/>
+    <rect x="1240" y="320" width="340" height="72" rx="13" fill="#272229"/>
+    <text x="1410" y="366" text-anchor="middle" font-family="Arial Black" font-size="27" fill="#f5efe7">TILL</text>
+  </g>
+
+  <g transform="translate(1385 665)" filter="url(#roomshadow)">
+    <rect x="-170" y="-70" width="340" height="145" rx="22" fill="#2d3532" stroke="#17131b" stroke-width="10"/>
+    <text x="0" y="-15" text-anchor="middle" font-family="Arial Black" font-size="20" fill="#b7ff39">NO, YOU DON'T NEED</text>
+    <text x="0" y="18" text-anchor="middle" font-family="Arial Black" font-size="20" fill="#b7ff39">ANOTHER COFFEE</text>
+    <text x="0" y="52" text-anchor="middle" font-family="Arial" font-size="15" fill="#d8d0c6">This message is legally aimed at Rick.</text>
+  </g>
+
+  <rect x="770" y="930" width="260" height="105" rx="22" fill="#202228" opacity=".85"/>
+</svg>

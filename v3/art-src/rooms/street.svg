@@ -1,0 +1,69 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 2200 1400">
+<defs>
+  <linearGradient id="night" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#243a34"/><stop offset="1" stop-color="#13241d"/></linearGradient>
+  <linearGradient id="warmwood" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#8c6345"/><stop offset=".55" stop-color="#5c3f31"/><stop offset="1" stop-color="#3a2923"/></linearGradient>
+  <linearGradient id="amber" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#ffd77d"/><stop offset="1" stop-color="#c67b3b"/></linearGradient>
+  <linearGradient id="plum" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#4c3b57"/><stop offset="1" stop-color="#241c2c"/></linearGradient>
+  <linearGradient id="greenGlass" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#5b8d7b"/><stop offset="1" stop-color="#264d41"/></linearGradient>
+  <filter id="roomshadow" x="-30%" y="-30%" width="160%" height="160%"><feDropShadow dx="0" dy="16" stdDeviation="14" flood-color="#000" flood-opacity=".35"/></filter>
+</defs>
+  <rect width="2200" height="1400" fill="url(#night)"/>
+  <rect y="900" width="2200" height="500" fill="#8c745f"/>
+  <rect y="870" width="2200" height="30" fill="#c4ac8d"/>
+  <path d="M0 1120H2200" stroke="#5f5045" stroke-width="12" stroke-dasharray="105 78" opacity=".42"/>
+  <path d="M1100 900V1400" stroke="#5f5045" stroke-width="12" stroke-dasharray="85 65" opacity=".35"/>
+
+  <g filter="url(#roomshadow)">
+    <path d="M85 720L360 430 635 720Z" fill="#493b50" stroke="#17131b" stroke-width="14"/>
+    <rect x="120" y="710" width="490" height="290" rx="12" fill="#2e2630" stroke="#17131b" stroke-width="14"/>
+    <rect x="185" y="815" width="115" height="185" rx="8" fill="#17141b"/>
+    <rect x="352" y="760" width="190" height="92" rx="10" fill="#e9e1d3"/>
+    <text x="447" y="816" text-anchor="middle" font-family="Arial Black" font-size="34" fill="#261f29">4AM COFFEE</text>
+    <g opacity=".85"><circle cx="398" cy="919" r="18" fill="#f2cf7c"/><path d="M389 919h21" stroke="#5c4032" stroke-width="6"/><circle cx="479" cy="919" r="18" fill="#f2cf7c"/></g>
+  </g>
+
+  <g filter="url(#roomshadow)">
+    <path d="M1570 680L1865 370 2160 680Z" fill="#34414a" stroke="#17131b" stroke-width="14"/>
+    <rect x="1610" y="670" width="515" height="330" rx="12" fill="#28343b" stroke="#17131b" stroke-width="14"/>
+    <rect x="1685" y="806" width="120" height="194" rx="8" fill="#15141a"/>
+    <rect x="1835" y="755" width="210" height="95" rx="11" fill="#e1e4de"/>
+    <text x="1940" y="814" text-anchor="middle" font-family="Georgia,serif" font-weight="700" font-size="39" fill="#233027">TAP &amp; VINE</text>
+    <g fill="#d9bd77"><circle cx="1880" cy="920" r="13"/><circle cx="1940" cy="920" r="13"/><circle cx="2000" cy="920" r="13"/></g>
+  </g>
+
+  <g filter="url(#roomshadow)">
+    <rect x="700" y="360" width="800" height="450" rx="80" fill="#2f6b4c" stroke="#214a37" stroke-width="14"/>
+    <path d="M760 455C920 380 1280 380 1440 455" stroke="#5d976f" stroke-width="12" fill="none"/>
+    <ellipse cx="875" cy="650" rx="130" ry="70" fill="#25583f"/>
+    <ellipse cx="1320" cy="635" rx="150" ry="76" fill="#25583f"/>
+    <rect x="980" y="590" width="250" height="38" rx="10" fill="#6a4d38"/>
+    <rect x="1018" y="628" width="20" height="70" fill="#513b2d"/>
+    <rect x="1172" y="628" width="20" height="70" fill="#513b2d"/>
+    <rect x="930" y="415" width="340" height="70" rx="16" fill="#15161b" opacity=".88"/>
+    <text x="1100" y="458" text-anchor="middle" font-family="Arial Black" font-size="27" fill="#f5efe7">WEIRD FRIENDS GREEN</text>
+  </g>
+
+  <g transform="translate(420 1160)" filter="url(#roomshadow)">
+    <ellipse cx="0" cy="46" rx="150" ry="34" fill="#000" opacity=".18"/>
+    <rect x="-150" y="-52" width="300" height="112" rx="32" fill="#315f6f" stroke="#17131b" stroke-width="11"/>
+    <path d="M-84 -52L-36 -115H72L112 -52Z" fill="url(#glass)" stroke="#17131b" stroke-width="9"/>
+    <circle cx="-92" cy="60" r="33" fill="#17191d"/><circle cx="96" cy="60" r="33" fill="#17191d"/>
+    <circle cx="-92" cy="60" r="16" fill="#8f969f"/><circle cx="96" cy="60" r="16" fill="#8f969f"/>
+  </g>
+
+  <g filter="url(#roomshadow)">
+    <rect x="40" y="1180" width="420" height="100" rx="22" fill="#17151b" opacity=".92"/>
+    <text x="250" y="1240" text-anchor="middle" font-family="Arial Black" font-size="27" fill="#f4efe8">LEYLAND ROAD STORES</text>
+  </g>
+
+  <g filter="url(#roomshadow)">
+    <rect x="1680" y="1160" width="430" height="110" rx="22" fill="#17151b" opacity=".92"/>
+    <text x="1895" y="1218" text-anchor="middle" font-family="Georgia" font-weight="700" font-size="36" fill="#f0c56a">THE TURKISH</text>
+  </g>
+
+  <g transform="translate(1040 790)" opacity=".95">
+    <rect x="-125" y="-38" width="250" height="76" rx="15" fill="#292132" stroke="#ff4fa3" stroke-width="5"/>
+    <text x="0" y="-2" text-anchor="middle" font-family="Arial Black" font-size="20" fill="#f3d96c">KENDAL CALLING</text>
+    <text x="0" y="24" text-anchor="middle" font-family="Arial" font-weight="700" font-size="14" fill="#efe9df">2027 · probably muddy</text>
+  </g>
+</svg>

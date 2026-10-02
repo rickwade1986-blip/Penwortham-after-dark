@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1800 1100">
+<defs>
+  <linearGradient id="night" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#243a34"/><stop offset="1" stop-color="#13241d"/></linearGradient>
+  <linearGradient id="warmwood" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#8c6345"/><stop offset=".55" stop-color="#5c3f31"/><stop offset="1" stop-color="#3a2923"/></linearGradient>
+  <linearGradient id="amber" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#ffd77d"/><stop offset="1" stop-color="#c67b3b"/></linearGradient>
+  <linearGradient id="plum" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#4c3b57"/><stop offset="1" stop-color="#241c2c"/></linearGradient>
+  <linearGradient id="greenGlass" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#5b8d7b"/><stop offset="1" stop-color="#264d41"/></linearGradient>
+  <filter id="roomshadow" x="-30%" y="-30%" width="160%" height="160%"><feDropShadow dx="0" dy="16" stdDeviation="14" flood-color="#000" flood-opacity=".35"/></filter>
+</defs>
+  <rect width="1800" height="1100" fill="#171219"/>
+  <circle cx="900" cy="560" r="430" fill="#251927" stroke="#4d2f47" stroke-width="22"/>
+  <circle cx="900" cy="560" r="315" fill="#171219" stroke="#ff5e67" stroke-width="9" stroke-dasharray="30 24"/>
+  <rect x="610" y="80" width="580" height="120" rx="24" fill="#101116" stroke="#ff5e67" stroke-width="6"/>
+  <text x="900" y="152" text-anchor="middle" font-family="Georgia,serif" font-weight="700" font-size="54" fill="#f5efe7">PAD THAI PALACE</text>
+
+  <g transform="translate(360 390)" filter="url(#roomshadow)">
+    <ellipse cx="0" cy="0" rx="190" ry="82" fill="#e6dccb" stroke="#4c3528" stroke-width="10"/>
+    <ellipse cx="-40" cy="0" rx="62" ry="40" fill="#92563c"/><circle cx="74" cy="-10" r="30" fill="#6f994d"/><circle cx="98" cy="26" r="25" fill="#d69b46"/>
+  </g>
+
+  <g transform="translate(1500 410)">
+    <rect x="-110" y="-70" width="220" height="140" rx="20" fill="#f2eee6" stroke="#c43a3a" stroke-width="10"/>
+    <text x="0" y="20" text-anchor="middle" font-family="Arial Black" font-size="58" fill="#c43a3a">KFC</text>
+  </g>
+
+  <text x="900" y="925" text-anchor="middle" font-family="Arial Black" font-size="31" fill="#ff8c94">SUNDAY ROAST INCIDENT RESPONSE CENTRE</text>
+  <text x="900" y="970" text-anchor="middle" font-family="Arial" font-weight="700" font-size="20" fill="#d9c8d6">first pub: no roast · second pub: 20 minutes</text>
+</svg>
