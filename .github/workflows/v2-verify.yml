@@ -1,0 +1,36 @@
+name: Verify V2 rebuild
+
+on:
+  push:
+    branches: ["v2-rebuild"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Syntax check
+        run: |
+          node --check v2/js/config.js
+          node --check v2/js/state.js
+          node --check v2/js/dialogue.js
+          node --check v2/js/player.js
+          node --check v2/js/scenes/BootScene.js
+          node --check v2/js/scenes/TestRoomScene.js
+          node --check v2/js/scenes/UIScene.js
+          node --check v2/js/boot.js
+      - name: Start server
+        run: |
+          python3 -m http.server 8000 > /tmp/http.log 2>&1 &
+          sleep 2
+      - name: Browser smoke test
+        run: |
+          CHROME="$(which google-chrome || which chromium || which chromium-browser)"
+          "$CHROME" --headless=new --no-sandbox --disable-gpu --virtual-time-budget=4500 --dump-dom             http://127.0.0.1:8000/v2/index.html > rendered.html
+          grep -q 'data-v2-ready="true"' rendered.html
+          grep -q '<canvas' rendered.html
+          grep -q 'FOUNDATION TEST' rendered.html
