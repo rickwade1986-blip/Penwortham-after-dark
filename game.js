@@ -182,6 +182,8 @@
       if(this.area.kind==='boss'&&state.quest>=5&&!state.won)this.startBoss(false);
       this.createObjectiveMarker();
       setObjective();setStatus();
+      document.body.dataset.gameReady='true';
+      document.body.dataset.premiumSprites=(this.textures.exists('rick-down0')&&this.textures.exists('laura-down0')&&this.textures.exists('fats-down0')&&this.textures.exists('dad-down0'))?'true':'false';
 
       if(state.firstBoot){
         state.firstBoot=false;save();
