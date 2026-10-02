@@ -1,0 +1,48 @@
+name: Verify V5 production slice
+
+on:
+  push:
+    branches: ["v5-production"]
+    paths:
+      - "v5/**"
+      - ".github/workflows/v5-verify.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Syntax
+        run: node --check v5/game.js
+      - name: Asset gate
+        run: |
+          test -f v5/assets/environments/tap-interior-candidate-01.jpg
+          test -f v5/assets/environments/tap-exterior-candidate-01.jpg
+      - name: Start server
+        run: |
+          python3 -m http.server 8000 >/tmp/v5-http.log 2>&1 &
+          sleep 2
+      - name: Browser smoke and quest-chain regression
+        run: |
+          CHROME="$(which google-chrome || which chromium || which chromium-browser)"
+          FLAGS="--headless=new --no-sandbox --disable-gpu --enable-unsafe-swiftshader --disable-dev-shm-usage --virtual-time-budget=7000"
+          "$CHROME" $FLAGS --dump-dom "http://127.0.0.1:8000/v5/index.html?test=1&dev=1" > smoke.html
+          grep -q 'data-v5-ready="true"' smoke.html
+          grep -q 'data-hotspots="will,denise,dad,display"' smoke.html
+          "$CHROME" $FLAGS --dump-dom "http://127.0.0.1:8000/v5/index.html?test=1&dev=1&autotest=quest-chain" > chain.html
+          grep -q 'data-auto-test="COMPLETE:wristband=true:access=true"' chain.html
+      - name: Capture production-room screenshot
+        if: always()
+        run: |
+          CHROME="$(which google-chrome || which chromium || which chromium-browser)"
+          "$CHROME" --headless=new --no-sandbox --disable-gpu --enable-unsafe-swiftshader --disable-dev-shm-usage --window-size=1600,900 --virtual-time-budget=6000 --screenshot=v5-tap.png "http://127.0.0.1:8000/v5/index.html?test=1&dev=1" || true
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: v5-tap-screenshot
+          path: v5-tap.png
+          retention-days: 3
