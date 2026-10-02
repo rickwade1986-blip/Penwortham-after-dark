@@ -10,15 +10,17 @@ PAD2.PlayerController=class{
   }
 
   key(){
-    return `${this.hero}-${this.direction}-${this.frame}`;
+    const dir=this.direction==='left'?'right':this.direction;
+    return `${this.hero}-${dir}-${this.frame}`;
   }
 
   applyTexture(){
     const key=this.key();
     if(this.scene.textures.exists(key))this.sprite.setTexture(key);
-    const scale=this.hero==='laura'?0.42:0.40;
+    this.sprite.setFlipX(this.direction==='left');
+    const scale=this.hero==='laura'?0.38:0.40;
     this.sprite.setScale(scale);
-    this.sprite.body?.setSize(90,72,true);
+    this.sprite.body?.setSize(92,70,true);
   }
 
   update(dt){
