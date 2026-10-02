@@ -249,6 +249,9 @@
   class BootScene extends Phaser.Scene{
     constructor(){super('Boot')}
     preload(){
+      this.load.on('loaderror',file=>{
+        document.body.dataset.assetError=file?.key||'unknown';
+      });
       for(const hero of ['rick','laura']){
         for(const dir of ['down','up','right']){
           for(let f=0;f<2;f++)this.load.image(`${hero}-${dir}-${f}`,`./assets/characters/${hero}-${dir}-${f}.png`);
@@ -929,6 +932,13 @@
     if(now-lastTouchEnd<=300)e.preventDefault();
     lastTouchEnd=now;
   },{passive:false});
+
+  window.addEventListener('error',e=>{
+    document.body.dataset.gameError=(e.message||'error').slice(0,180);
+  });
+  window.addEventListener('unhandledrejection',e=>{
+    document.body.dataset.gameError=('promise:'+String(e.reason||'error')).slice(0,180);
+  });
 
   uiRefresh();
 
