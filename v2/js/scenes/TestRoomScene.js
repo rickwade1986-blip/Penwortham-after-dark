@@ -18,18 +18,19 @@ PAD2.TestRoomScene=class extends Phaser.Scene{
     this.add.text(W/2,245,'V2 MOVEMENT / DIALOGUE TEST',{fontFamily:'Bangers',fontSize:'34px',color:'#f4efe8'}).setOrigin(.5);
     this.add.text(W/2,290,'This room is deliberately temporary. No ship art lives here.',{fontFamily:'IBM Plex Sans',fontSize:'14px',color:'#b9b0bd'}).setOrigin(.5);
 
-    this.player=this.physics.add.sprite(W/2,H/2).setDisplaySize(74,100).setTint(0xffffff);
-    this.player.setCircle(28,9,42).setCollideWorldBounds(true);
-    this.player.setTexture('__WHITE');
-    this.player.setFillStyle=()=>{};
+    // Temporary capsule used only to validate movement. This is not ship art.
+    if(!this.textures.exists('pad2-player')){
+      const capsule=this.add.graphics();
+      capsule.fillStyle(0xffffff);
+      capsule.fillRoundedRect(2,2,64,92,22);
+      capsule.lineStyle(3,0x17131c,1);
+      capsule.strokeRoundedRect(2,2,64,92,22);
+      capsule.generateTexture('pad2-player',68,96);
+      capsule.destroy();
+    }
+    this.player=this.physics.add.sprite(W/2,H/2,'pad2-player').setDisplaySize(74,104);
+    this.player.setCircle(24,10,48).setCollideWorldBounds(true);
     this.player.setTint(PAD2.state.data.hero==='rick'?0x2f6448:0xb94882);
-
-    // use a simple capsule graphic overlay solely for movement foundation testing
-    const capsule=this.add.graphics();
-    capsule.fillStyle(PAD2.state.data.hero==='rick'?0x2f6448:0xb94882);
-    capsule.fillRoundedRect(-34,-48,68,96,24);
-    capsule.generateTexture('pad2-player',68,96);capsule.destroy();
-    this.player.setTexture('pad2-player').clearTint();
 
     this.controller=new PAD2.PlayerController(this,this.player);
     this.cameras.main.startFollow(this.player,true,PAD2.config.camera.lerp,PAD2.config.camera.lerp);
@@ -43,6 +44,7 @@ PAD2.TestRoomScene=class extends Phaser.Scene{
     this.physics.add.collider(this.player,this.wall);
 
     document.getElementById('objective').textContent='MOVE → TALK → SWAP → TRY TO PINCH-ZOOM';
+    document.body.dataset.v2Ready='true';
   }
   act(){
     const d=Phaser.Math.Distance.Between(this.player.x,this.player.y,this.prompt.x,this.prompt.y);
