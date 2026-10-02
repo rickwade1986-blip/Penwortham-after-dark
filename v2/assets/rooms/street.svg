@@ -18,8 +18,8 @@
  <path d="M90 460L300 260 510 460Z" fill="#493b50" stroke="#17131b" stroke-width="12"/>
  <rect x="120" y="455" width="360" height="180" rx="8" fill="#312832" stroke="#17131b" stroke-width="12"/>
  <rect x="175" y="515" width="95" height="120" fill="#17141b"/>
- <rect x="305" y="488" width="125" height="72" rx="7" fill="#f0e9df"/>
- <text x="368" y="533" text-anchor="middle" font-family="Arial Black, sans-serif" font-size="28" fill="#241e28">4AM COFFEE</text>
+ <rect x="278" y="486" width="180" height="74" rx="7" fill="#f0e9df"/>
+ <text x="368" y="532" text-anchor="middle" font-family="Arial Black, sans-serif" font-size="22" fill="#241e28">4AM COFFEE</text>
  <circle cx="390" cy="590" r="18" fill="#f0c66d"/><path d="M380 590h22" stroke="#55382d" stroke-width="6"/>
 </g>
 <!-- right building: tap -->
