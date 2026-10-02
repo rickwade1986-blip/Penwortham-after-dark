@@ -74,7 +74,7 @@ document.getElementById('ability').addEventListener('pointerdown',e=>{
 });
 
 const phaser=new Phaser.Game({
-  type:Phaser.AUTO,
+  type:Phaser.CANVAS,
   parent:'game',
   backgroundColor:'#17251e',
   scale:{mode:Phaser.Scale.RESIZE,width:innerWidth,height:innerHeight},
@@ -83,4 +83,4 @@ const phaser=new Phaser.Game({
   scene:[PAD2.BootScene,PAD2.TestRoomScene,PAD2.UIScene]
 });
 
-document.body.dataset.v2Ready='true';
+document.body.dataset.v2Boot='true';
