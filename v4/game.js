@@ -127,6 +127,8 @@
   let enemyShots = [];
   let dialogue = null;
   let toastTimer = 0;
+  let bark = null;
+  let barkTimer = 3.8;
   let last = performance.now();
   let running = false;
   let viewScale = 1;
@@ -423,7 +425,10 @@
       });
       addHotspot({
         id:'sign', x:960, y:480, r:110, label:'TARGETED SIGN',
-        act:() => say('LAURA', ['“No, you do not need another coffee.”', 'Rick: That feels legally targeted.', 'Laura: It is.'])
+        act:() => say('LAURA', ['“No, you do not need another coffee.”', 'Rick: That feels legally targeted.', 'Laura: It is.']),
+        ability:() => say(state.hero.toUpperCase(), state.hero === 'rick'
+          ? ['Objection.', 'Laura: Overruled.', 'Rick: I was not aware this shop had a court.']
+          : ['Accurate sign. No notes.'])
       });
       addHotspot({ id:'exit', x:600, y:630, r:110, label:'OUT', act:() => setScene('town',{x:1390,y:760}) });
     }
@@ -543,11 +548,14 @@
       });
 
       addHotspot({
-        id:'dad', x:935, y:505, r:105, label:'DAD',
+        id:'dad', x:935, y:505, r:108, label:'DAD',
         act:() => say('DAD', lines.dad[state.hero], () => {
           state.flags.dad = true;
           save();
-        })
+        }),
+        ability:() => say(state.hero.toUpperCase(), state.hero === 'rick'
+          ? ['Rick: Tell Denise you saw me clear a glass.', 'Dad: I saw absolutely fuck all.', 'Rick: Helpful.']
+          : ['Laura: Any chance you are helping?', 'Dad: Customer.', 'Laura: Thought so.'])
       });
 
       addHotspot({
@@ -597,6 +605,9 @@
     if (scene === 'turkish') {
       addHotspot({
         id:'food', x:600, y:505, r:150, label:'THE FEAST',
+        ability:() => say(state.hero.toUpperCase(), state.hero === 'rick'
+          ? ['Rick: This is exactly what we ordered.', 'WAITER: It absolutely is not.', 'Rick: See? We are already finding common ground.']
+          : ['Laura: That is not two portions.', 'WAITER: Turkish two portions.', 'Laura: ...fair enough.']),
         act:() => {
           if (!state.flags.turkish) {
             say(state.hero.toUpperCase(), lines.turkish[state.hero], () => {
@@ -621,6 +632,9 @@
     if (scene === 'kendal') {
       addHotspot({
         id:'flashback', x:700, y:480, r:165, label: state.quest === Q.WRISTBAND ? "WILL'S WRISTBAND" : 'QUESTIONABLE FESTIVAL MEMORY',
+        ability:() => say(state.hero.toUpperCase(), state.hero === 'rick'
+          ? ['Rick: I remember Kendal perfectly.', 'Laura: You lost the car park while standing in it.', 'Rick: That was tactical.']
+          : ['Laura: I am calling bullshit on everyone claiming they remember this weekend.', 'Rick: Finally, evidence-based policy.']),
         act:() => {
           if (state.quest === Q.WRISTBAND && !state.flags.wristband) {
             say('LAURA', [
@@ -909,6 +923,30 @@
     player.flash = Math.max(0, player.flash-dt);
     boss.flash = Math.max(0, boss.flash-dt);
 
+    if (currentSceneName() === 'tap' && !dialogue && !boss.active) {
+      barkTimer -= dt;
+      if (bark) {
+        bark.life -= dt;
+        if (bark.life <= 0) bark = null;
+      }
+      if (!bark && barkTimer <= 0) {
+        const pool = [
+          {id:'will', text:"you're a pub"},
+          {id:'denise', text:'who left that there?'},
+          {id:'dad', text:'customer.'},
+          {id:'will', text:'hospitality.'},
+          {id:'denise', text:'absolutely not.'},
+          {id:'dad', text:'another one.'}
+        ];
+        bark = pool[Math.floor(Math.random()*pool.length)];
+        bark.life = 1.8;
+        barkTimer = 4.5 + Math.random()*3.5;
+      }
+    } else {
+      bark = null;
+      barkTimer = Math.min(barkTimer, 2.8);
+    }
+
     if (boss.active && currentSceneName()==='town' && !dialogue) {
       const dx = player.x - boss.x;
       const dy = player.y - boss.y;
@@ -1007,6 +1045,31 @@
       ctx.fillStyle = n.key === 'denise' ? '#ff4fa3' : n.key === 'dad' ? '#f2c766' : '#b6ff3b';
       ctx.strokeText(n.label,p.x,p.y-h-4);
       ctx.fillText(n.label,p.x,p.y-h-4);
+      ctx.restore();
+    }
+
+    if (bark && bark.id === n.id && !dialogue) {
+      ctx.save();
+      const fontSize=Math.max(10,14*viewScale);
+      ctx.font=`800 ${fontSize}px Inter, system-ui, sans-serif`;
+      const pad=7*viewScale;
+      const tw=ctx.measureText(bark.text).width;
+      const bw=tw+pad*2,bh=27*viewScale;
+      const bx=p.x-bw/2,by=p.y-h-42*viewScale;
+      ctx.fillStyle='rgba(9,11,17,.92)';
+      ctx.strokeStyle='rgba(255,255,255,.22)';
+      ctx.lineWidth=Math.max(1,2*viewScale);
+      ctx.beginPath();
+      ctx.roundRect(bx,by,bw,bh,8*viewScale);
+      ctx.fill();ctx.stroke();
+      ctx.beginPath();
+      ctx.moveTo(p.x-6*viewScale,by+bh);
+      ctx.lineTo(p.x,by+bh+8*viewScale);
+      ctx.lineTo(p.x+6*viewScale,by+bh);
+      ctx.fill();
+      ctx.fillStyle='#f4eee7';
+      ctx.textAlign='center';ctx.textBaseline='middle';
+      ctx.fillText(bark.text,p.x,by+bh/2+1);
       ctx.restore();
     }
   }
