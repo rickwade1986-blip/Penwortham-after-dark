@@ -2,7 +2,7 @@ name: Verify V4 ground-up build
 
 on:
   push:
-    branches: ["v4-ground-up"]
+    branches: ["main", "v4-ground-up"]
     paths:
       - "v4/**"
       - ".github/workflows/v4-verify.yml"
