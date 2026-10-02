@@ -322,12 +322,12 @@
     applyCameraZoom(){
       const vw=this.scale.width||innerWidth;
       const vh=this.scale.height||innerHeight;
-      const fit=Math.min(vw/this.room.w,vh/this.room.h);
-      // Fit the room to the phone first. V2 forced a high minimum zoom and was absurdly close on iPhone.
-      const target=this.roomKey==='street'
-        ?Math.max(.31,Math.min(.50,fit*1.18))
-        :Math.max(.36,Math.min(.58,fit*1.16));
+      // Fill the landscape viewport without the V2 close-up. Width is the anchor:
+      // on an iPhone this is about .38 outdoors and .47 indoors; on desktop it scales up naturally.
+      const cover=Math.max(vw/this.room.w,vh/this.room.h);
+      const target=cover*(this.roomKey==='street'?1.00:1.02);
       this.cameras.main.setZoom(target);
+      document.body.dataset.cameraZoom=target.toFixed(3);
     }
 
     createWalls(){
