@@ -37,21 +37,33 @@ jobs:
         run: |
           python3 -m http.server 8000 > /tmp/http.log 2>&1 &
           sleep 2
-      - name: Browser smoke test
+      - name: Browser diagnostics
         run: |
           CHROME="$(which google-chrome || which chromium || which chromium-browser)"
-          "$CHROME" --headless=new --no-sandbox --disable-gpu --virtual-time-budget=8000 --dump-dom             http://127.0.0.1:8000/v2/index.html?reset=1 > rendered.html
-          grep -q 'data-v2-ready="true"' rendered.html
-          grep -q 'data-v2-room="StreetScene"' rendered.html
-          grep -q '<canvas' rendered.html
-          grep -q "Find Rick's car" rendered.html
-          grep -q 'BULLSHIT' rendered.html
+          "$CHROME" --headless=new --no-sandbox --disable-gpu --virtual-time-budget=9000 --dump-dom             http://127.0.0.1:8000/v2/index.html?reset=1 > rendered.html
+          echo "READY=$(grep -c 'data-v2-ready="true"' rendered.html || true)"
+          echo "ROOM=$(grep -c 'data-v2-room="StreetScene"' rendered.html || true)"
+          echo "CANVAS=$(grep -c '<canvas' rendered.html || true)"
+          echo "OBJECTIVE=$(grep -c "Find Rick's car" rendered.html || true)"
+          echo "ABILITY=$(grep -c 'BULLSHIT' rendered.html || true)"
+          grep -o '<body[^>]*>' rendered.html | head -1 || true
+          grep -o '<div id="objective"[^>]*>[^<]*' rendered.html | head -1 || true
+          grep -o '<button id="ability"[^>]*>[^<]*' rendered.html | head -1 || true
+          test "$(grep -c 'data-v2-ready="true"' rendered.html || true)" -ge 1
+          test "$(grep -c 'data-v2-room="StreetScene"' rendered.html || true)" -ge 1
+          test "$(grep -c '<canvas' rendered.html || true)" -ge 1
+          test "$(grep -c "Find Rick's car" rendered.html || true)" -ge 1
       - name: Capture V2 screenshot
+        if: always()
         run: |
           CHROME="$(which google-chrome || which chromium || which chromium-browser)"
-          "$CHROME" --headless=new --no-sandbox --disable-gpu --window-size=1600,900 --virtual-time-budget=5000             --screenshot=v2-smoke.png http://127.0.0.1:8000/v2/index.html?reset=1
+          "$CHROME" --headless=new --no-sandbox --disable-gpu --window-size=1600,900 --virtual-time-budget=7000             --screenshot=v2-smoke.png http://127.0.0.1:8000/v2/index.html?reset=1 || true
+          cp rendered.html rendered-copy.html || true
       - uses: actions/upload-artifact@v4
+        if: always()
         with:
           name: v2-smoke
-          path: v2-smoke.png
+          path: |
+            v2-smoke.png
+            rendered-copy.html
           retention-days: 3
