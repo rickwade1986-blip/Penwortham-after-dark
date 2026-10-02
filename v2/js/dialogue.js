@@ -11,13 +11,13 @@ PAD2.dialogue={
 
   portraitFor(name){
     const n=(name||'').toUpperCase();
-    if(n.includes('RICK'))return './assets/characters/rick-down-0.svg';
-    if(n.includes('LAURA'))return './assets/characters/laura-down-0.svg';
-    if(n==='DAD')return './assets/characters/dad.svg';
-    if(n==='WILL')return './assets/characters/will.svg';
-    if(n==='DENISE')return './assets/characters/denise.svg';
-    if(n.includes('FATS'))return './assets/characters/fats.svg';
-    if(n.includes('3000'))return './assets/characters/andrew.svg';
+    if(n.includes('RICK'))return './assets/characters/rick-down-0.png';
+    if(n.includes('LAURA'))return './assets/characters/laura-down-0.png';
+    if(n==='DAD')return './assets/characters/dad.png';
+    if(n==='WILL')return './assets/characters/will.png';
+    if(n==='DENISE')return './assets/characters/denise.png';
+    if(n.includes('FATS'))return './assets/characters/fats.png';
+    if(n.includes('3000'))return './assets/characters/andrew.png';
     return '';
   },
 
