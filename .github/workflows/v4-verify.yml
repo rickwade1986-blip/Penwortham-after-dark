@@ -56,6 +56,9 @@ jobs:
           testpage will_chain "http://127.0.0.1:8000/v4/index.html?test=1&reset=1&scene=tap&quest=WILL&autotest=will-glasses-chain"
           grep -q 'data-auto-test="DENISE:wristband=true:glasses=true:' will_chain.html
           grep -q 'will' will_chain.html
+
+          testpage denise_task "http://127.0.0.1:8000/v4/index.html?test=1&reset=1&scene=tap&quest=DENISE&autotest=denise-glasses"
+          grep -q 'data-denise-test="TURKISH:wine=true:glasses=3"' denise_task.html
           testpage shop "http://127.0.0.1:8000/v4/index.html?test=1&scene=shop&quest=MILK"
           testpage tap "http://127.0.0.1:8000/v4/index.html?test=1&scene=tap&quest=WILL"
           testpage turkish "http://127.0.0.1:8000/v4/index.html?test=1&scene=turkish&quest=TURKISH"
