@@ -28,6 +28,7 @@
   const Q = Object.freeze({
     CAR: 'CAR',
     MILK: 'MILK',
+    PAY_MILK: 'PAY_MILK',
     WILL: 'WILL',
     WRISTBAND: 'WRISTBAND',
     GLASSES: 'GLASSES',
@@ -42,6 +43,7 @@
   const objectiveText = {
     [Q.CAR]: "Find Rick's car",
     [Q.MILK]: 'Behbeh, we need milk too',
+    [Q.PAY_MILK]: 'Get the milk past the till',
     [Q.WILL]: "Go to Tap & Vine. Will's got the glasses.",
     [Q.WRISTBAND]: "Find Will's Kendal wristband",
     [Q.GLASSES]: 'Take the wristband back to Will',
@@ -82,6 +84,7 @@
         car: false,
         glasses: false,
         milk: false,
+        milkHeld: false,
         wristband: false,
         will: false,
         denise: false,
@@ -129,6 +132,8 @@
   let toastTimer = 0;
   let bark = null;
   let barkTimer = 3.8;
+  let fatsRunner = null;
+  let fatsRunnerHotspot = null;
   let last = performance.now();
   let running = false;
   let viewScale = 1;
@@ -326,6 +331,8 @@
   function buildScene() {
     hotspots = [];
     npcs = [];
+    fatsRunner = null;
+    fatsRunnerHotspot = null;
     const scene = currentSceneName();
 
     if (scene === 'town') {
@@ -361,7 +368,7 @@
       addHotspot({
         id:'tapDoor', x:1320, y:474, r:105, label:'TAP & VINE',
         act:() => {
-          if ([Q.CAR,Q.MILK].includes(state.quest)) {
+          if ([Q.CAR,Q.MILK,Q.PAY_MILK].includes(state.quest)) {
             say('LAURA', ['Milk first.', 'Rick: The Tap is basically hydration.', 'Laura: It really is not.']);
           } else setScene('tap');
         }
@@ -391,9 +398,23 @@
       });
 
       if ([Q.FATS,Q.DONE].includes(state.quest)) {
-        addNpc({ id:'fats', key:'fats', x:805, y:445, w:93, h:136, label:'FATS' });
-        addHotspot({
-          id:'fats', x:805, y:445, r:105, label:'FATS',
+        const fatsNpc = addNpc({ id:'fats', key:'fats', x:805, y:445, w:93, h:136, label:'FATS' });
+
+        if (state.quest === Q.FATS) {
+          fatsRunner = {
+            x:805, y:445, target:0, npc:fatsNpc,
+            points:[
+              {x:1020,y:545},
+              {x:820,y:635},
+              {x:585,y:555},
+              {x:720,y:470},
+              {x:1000,y:455}
+            ]
+          };
+        }
+
+        fatsRunnerHotspot = addHotspot({
+          id:'fats', x:805, y:445, r:125, label: state.quest === Q.FATS ? 'CATCH FATS' : 'FATS',
           act:() => {
             if (state.quest === Q.DONE) {
               say('FATS', ['I am still saying twenty minutes was unacceptable.']);
@@ -415,14 +436,81 @@
 
     if (scene === 'shop') {
       addHotspot({
-        id:'milk', x:240, y:430, r:120, label:'MILK FRIDGE',
+        id:'milk', x:240, y:430, r:125, label:'MILK FRIDGE',
         act:() => {
           if (state.quest === Q.MILK) {
-            advanceQuest(Q.WILL, 'milk');
-            say(state.hero.toUpperCase(), lines.milk[state.hero], () => burst(240,430,'#7fc7d7',18));
-          } else say('LAURA', ['We already have milk.', 'Rick: Worth checking.', 'Laura: No.']);
+            state.flags.milkHeld = true;
+            advanceQuest(Q.PAY_MILK);
+            say(state.hero.toUpperCase(), [
+              state.hero === 'rick' ? 'Milk acquired.' : 'Milk.',
+              'TILL: CARD PAYMENT UNAVAILABLE.',
+              'Rick: Of course it is.',
+              'Laura: Why does buying milk have a boss phase?'
+            ], () => burst(240,430,'#7fc7d7',18));
+            return;
+          }
+          if (state.quest === Q.PAY_MILK) {
+            say('LAURA', ['You are already holding the milk.', 'Go and deal with the till, Ocean’s Eleven.']);
+            return;
+          }
+          say('LAURA', ['We already have milk.', 'Rick: Worth checking.', 'Laura: No.']);
         }
       });
+
+      addHotspot({
+        id:'till', x:963, y:285, r:135, label:'THE TILL',
+        act:() => {
+          if (state.quest !== Q.PAY_MILK) {
+            say('RICK', ['A till.', 'Laura: Incredible.']);
+            return;
+          }
+          say('TILL', [
+            'CARD PAYMENT UNAVAILABLE.',
+            'MILK: £3.79.',
+            'Rick: Three seventy-nine?!',
+            'Laura: Use your thing.',
+            'Rick: My card?',
+            'Laura: No. Your personality.'
+          ]);
+        },
+        ability:() => {
+          if (state.quest !== Q.PAY_MILK) {
+            say(state.hero.toUpperCase(), state.hero === 'rick'
+              ? ['I do not need to bullshit a functioning till.', 'Laura: Growth.']
+              : ['Nothing to call bullshit on yet.', 'Rick: Give it time.']);
+            return;
+          }
+
+          if (state.hero === 'rick') {
+            say('RICK', [
+              'Hi mate. We’re actually mystery shoppers.',
+              'There is a very complicated reimbursement arrangement.',
+              'TILL: ...',
+              'Laura: You are bullshitting a machine.',
+              'TILL: PAYMENT ACCEPTED.',
+              'Rick: Never doubted myself.'
+            ], () => {
+              state.flags.milkHeld = false;
+              advanceQuest(Q.WILL, 'milk');
+              showToast('MILK LEGALLY-ISH ACQUIRED', 1050);
+            });
+          } else {
+            say('LAURA', [
+              'Bullshit. Shelf label says £1.65.',
+              'TILL: ...',
+              'Laura: And the card reader is literally showing READY.',
+              'TILL: PAYMENT ACCEPTED.',
+              'Rick: That was disappointingly competent.',
+              'Laura: Thank you.'
+            ], () => {
+              state.flags.milkHeld = false;
+              advanceQuest(Q.WILL, 'milk');
+              showToast('MILK ACQUIRED WITHOUT A CRIME', 1050);
+            });
+          }
+        }
+      });
+
       addHotspot({
         id:'sign', x:960, y:480, r:110, label:'TARGETED SIGN',
         act:() => say('LAURA', ['“No, you do not need another coffee.”', 'Rick: That feels legally targeted.', 'Laura: It is.']),
@@ -430,7 +518,21 @@
           ? ['Objection.', 'Laura: Overruled.', 'Rick: I was not aware this shop had a court.']
           : ['Accurate sign. No notes.'])
       });
-      addHotspot({ id:'exit', x:600, y:630, r:110, label:'OUT', act:() => setScene('town',{x:1390,y:760}) });
+
+      addHotspot({
+        id:'exit', x:600, y:630, r:110, label:'OUT',
+        act:() => {
+          if (state.quest === Q.PAY_MILK && state.flags.milkHeld) {
+            say('LAURA', [
+              'You are walking out with unpaid milk.',
+              'Rick: I prefer “frictionless retail”.',
+              'Laura: Go back to the till.'
+            ]);
+            return;
+          }
+          setScene('town',{x:1390,y:760});
+        }
+      });
     }
 
     if (scene === 'tap') {
@@ -679,7 +781,12 @@
     boss.active = true;
     boss.started = true;
     boss.hp = boss.maxHp;
-    boss.x = 805; boss.y = 445;
+    boss.x = fatsRunner ? fatsRunner.x : 805;
+    boss.y = fatsRunner ? fatsRunner.y : 445;
+    npcs = npcs.filter(n => n.id !== 'fats');
+    hotspots = hotspots.filter(h => h.id !== 'fats');
+    fatsRunner = null;
+    fatsRunnerHotspot = null;
     boss.vulnerable = 'rick';
     boss.swapTimer = 4.2;
     boss.fireTimer = 1.05;
@@ -947,6 +1054,26 @@
       barkTimer = Math.min(barkTimer, 2.8);
     }
 
+    if (fatsRunner && currentSceneName()==='town' && state.quest===Q.FATS && !dialogue && !boss.active) {
+      const target = fatsRunner.points[fatsRunner.target];
+      const dx = target.x - fatsRunner.x;
+      const dy = target.y - fatsRunner.y;
+      const dist = Math.hypot(dx,dy) || 1;
+      const playerDist = Math.hypot(player.x-fatsRunner.x,player.y-fatsRunner.y);
+      const speed = playerDist < 190 ? 118 : 82;
+      fatsRunner.x += dx/dist * speed * dt;
+      fatsRunner.y += dy/dist * speed * dt;
+
+      if (dist < 18) fatsRunner.target = (fatsRunner.target + 1) % fatsRunner.points.length;
+
+      fatsRunner.npc.x = fatsRunner.x;
+      fatsRunner.npc.y = fatsRunner.y;
+      if (fatsRunnerHotspot) {
+        fatsRunnerHotspot.x = fatsRunner.x;
+        fatsRunnerHotspot.y = fatsRunner.y;
+      }
+    }
+
     if (boss.active && currentSceneName()==='town' && !dialogue) {
       const dx = player.x - boss.x;
       const dy = player.y - boss.y;
@@ -1045,6 +1172,24 @@
       ctx.fillStyle = n.key === 'denise' ? '#ff4fa3' : n.key === 'dad' ? '#f2c766' : '#b6ff3b';
       ctx.strokeText(n.label,p.x,p.y-h-4);
       ctx.fillText(n.label,p.x,p.y-h-4);
+      ctx.restore();
+    }
+
+    if (n.id === 'fats' && fatsRunner && !dialogue) {
+      const taunts = ['NO ROAST.','TWENTY MINUTES.','UNACCEPTABLE.'];
+      const text = taunts[Math.floor(performance.now()/1100)%taunts.length];
+      ctx.save();
+      ctx.font=`800 ${Math.max(10,13*viewScale)}px Inter, system-ui, sans-serif`;
+      const pad=7*viewScale;
+      const tw=ctx.measureText(text).width;
+      const bw=tw+pad*2,bh=26*viewScale;
+      const bx=p.x-bw/2,by=p.y-h-38*viewScale;
+      ctx.fillStyle='rgba(35,12,17,.92)';
+      ctx.strokeStyle='#ff6673';
+      ctx.lineWidth=Math.max(1,2*viewScale);
+      ctx.beginPath();ctx.roundRect(bx,by,bw,bh,8*viewScale);ctx.fill();ctx.stroke();
+      ctx.fillStyle='#ffb2b8';ctx.textAlign='center';ctx.textBaseline='middle';
+      ctx.fillText(text,p.x,by+bh/2+1);
       ctx.restore();
     }
 
