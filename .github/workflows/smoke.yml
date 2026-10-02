@@ -1,0 +1,36 @@
+name: Browser smoke test
+
+on:
+  push:
+    branches: ["main"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Start local server
+        run: |
+          python3 -m http.server 8000 > /tmp/pad-http.log 2>&1 &
+          sleep 2
+      - name: Load the actual game in headless Chrome
+        run: |
+          CHROME="$(which google-chrome || which chromium || which chromium-browser)"
+          echo "Using $CHROME"
+          "$CHROME"             --headless=new             --no-sandbox             --disable-gpu             --virtual-time-budget=6000             --dump-dom             http://127.0.0.1:8000/index.html > rendered.html
+          grep -q "<canvas" rendered.html
+          grep -q "PENWORTHAM" rendered.html
+          grep -q "OBJECTIVE" rendered.html
+      - name: Capture smoke screenshot
+        run: |
+          CHROME="$(which google-chrome || which chromium || which chromium-browser)"
+          "$CHROME"             --headless=new             --no-sandbox             --disable-gpu             --window-size=1365,768             --virtual-time-budget=4000             --screenshot=smoke.png             http://127.0.0.1:8000/index.html
+      - uses: actions/upload-artifact@v4
+        with:
+          name: smoke-screenshot
+          path: smoke.png
+          retention-days: 3
