@@ -58,6 +58,13 @@
   }
 
   const state=loadState();
+  {
+    const p=new URLSearchParams(location.search);
+    const room=p.get('room');
+    const quest=p.get('quest');
+    if(['street','shop','tap','kendal','turkish','fats'].includes(room))state.room=room;
+    if(Object.values(Q).includes(quest))state.quest=quest;
+  }
   const save=()=>{
     try{localStorage.setItem(SAVE_KEY,JSON.stringify(state))}catch{}
     uiRefresh();
