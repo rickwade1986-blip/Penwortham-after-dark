@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+  <meta name="theme-color" content="#090b10">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <title>Penwortham After Dark</title>
+  <link rel="stylesheet" href="./style.css">
+</head>
+<body>
+  <main id="root">
+    <canvas id="game" aria-label="Penwortham After Dark game"></canvas>
+
+    <header id="hud">
+      <div id="logo">PENWORTHAM <b>AFTER DARK</b></div>
+      <div id="objective"><span>OBJECTIVE</span><strong>Find Rick's car</strong></div>
+      <div id="status"><strong id="heroName">RICK</strong><span id="hearts">♥♥♥♥♥♥</span></div>
+    </header>
+
+    <div id="prompt" class="hidden"></div>
+
+    <div id="controls">
+      <button id="swap" type="button">SWAP</button>
+      <button id="act" type="button">ACT</button>
+      <button id="ability" type="button">BULLSHIT</button>
+    </div>
+
+    <div id="stickBase" class="hidden" aria-hidden="true"><div id="stickKnob"></div></div>
+    <div id="moveGhost" aria-hidden="true"><i></i><span>MOVE</span></div>
+
+    <section id="dialogue" class="hidden" aria-live="polite">
+      <div id="portrait"></div>
+      <div class="dialogueText">
+        <div id="speaker">RICK</div>
+        <p id="line"></p>
+        <small>ACT ›</small>
+      </div>
+    </section>
+
+    <section id="startCard">
+      <div class="startInner">
+        <div class="eyebrow">A VERY SHORT, VERY STUPID ADVENTURE</div>
+        <h1>PENWORTHAM<br><em>AFTER DARK</em></h1>
+        <p>Find the car. Find the milk. Survive the Tap. Deal with FATS.</p>
+        <button id="start" type="button">START THE NONSENSE</button>
+      </div>
+    </section>
+
+    <div id="toast" class="hidden"></div>
+    <div id="rotate"><div>↻</div><strong>landscape, behbeh</strong></div>
+  </main>
+
+  <script src="./art.js"></script>
+  <script src="./game.js"></script>
+</body>
+</html>
