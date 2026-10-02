@@ -1,0 +1,53 @@
+name: Rasterize V2 art
+
+on:
+  push:
+    branches: ["v2-rebuild"]
+    paths:
+      - "v2/assets/**/*.svg"
+      - ".github/workflows/v2-rasterize.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  rasterize:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install SVG rasterizer
+        run: pip install cairosvg
+      - name: Rasterize all V2 SVG assets
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import cairosvg
+
+          for p in Path("v2/assets").rglob("*.svg"):
+              if "rooms" in p.parts:
+                  w,h=1600,900
+              else:
+                  text=p.read_text(encoding="utf-8",errors="ignore")
+                  if 'viewBox="0 0 220 280"' in text:
+                      w,h=440,560
+                  else:
+                      w,h=400,520
+              out=p.with_suffix(".png")
+              cairosvg.svg2png(url=str(p),write_to=str(out),output_width=w,output_height=h)
+              print(f"{p} -> {out} ({w}x{h})")
+          PY
+      - name: Commit rasterized assets
+        run: |
+          git config user.name "Penwortham After Dark Bot"
+          git config user.email "actions@github.com"
+          git add v2/assets/**/*.png
+          if git diff --cached --quiet; then
+            echo "No raster changes"
+          else
+            git commit -m "Rasterize V2 art for browser gameplay"
+            git push
+          fi
