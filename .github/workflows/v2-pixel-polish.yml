@@ -1,0 +1,186 @@
+name: Polish V2 pixel art
+
+on:
+  workflow_dispatch:
+  push:
+    branches: ["v2-rebuild"]
+    paths:
+      - ".github/workflows/v2-pixel-polish.yml"
+      - "v2/assets/rooms/*.png"
+
+permissions:
+  contents: write
+
+jobs:
+  polish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install pillow
+      - name: Build coherent pixel-art game assets
+        run: |
+          python - <<'PY'
+          from PIL import Image, ImageDraw, ImageOps
+          from pathlib import Path
+          from collections import deque
+
+          ROOT=Path("v2/assets/game")
+          (ROOT/"players").mkdir(parents=True,exist_ok=True)
+          (ROOT/"npcs").mkdir(parents=True,exist_ok=True)
+          (ROOT/"rooms").mkdir(parents=True,exist_ok=True)
+
+          def edge_transparency(im):
+              im=im.convert("RGBA")
+              px=im.load(); w,h=im.size
+              seen=set(); q=deque()
+              for x in range(w):
+                  q.append((x,0)); q.append((x,h-1))
+              for y in range(h):
+                  q.append((0,y)); q.append((w-1,y))
+              def is_bg(x,y):
+                  r,g,b,a=px[x,y]
+                  if a<20: return True
+                  # checkerboard / white-grey generated backgrounds
+                  return r>175 and g>175 and b>175 and max(r,g,b)-min(r,g,b)<24
+              while q:
+                  x,y=q.popleft()
+                  if (x,y) in seen or x<0 or y<0 or x>=w or y>=h: continue
+                  seen.add((x,y))
+                  if not is_bg(x,y): continue
+                  r,g,b,a=px[x,y]; px[x,y]=(r,g,b,0)
+                  q.extend(((x+1,y),(x-1,y),(x,y+1),(x,y-1)))
+              return im
+
+          # Promote the more detailed legacy Rick + Laura art, clean Laura's checkerboard.
+          for hero in ["rick","laura"]:
+              for direction in ["down","up","right"]:
+                  for frame in [0,1]:
+                      src=Path("assets/characters")/hero/f"{direction}{frame}.png"
+                      im=Image.open(src).convert("RGBA")
+                      if hero=="laura":
+                          im=edge_transparency(im)
+                      im.save(ROOT/"players"/f"{hero}-{direction}-{frame}.png",optimize=True)
+
+          # Pixel-art room pass: same palette + resolution language as characters.
+          for src in Path("v2/assets/rooms").glob("*.png"):
+              im=Image.open(src).convert("RGB")
+              small=im.resize((400,225),Image.Resampling.LANCZOS)
+              small=small.quantize(colors=64,method=Image.Quantize.MEDIANCUT).convert("RGB")
+              out=small.resize((1600,900),Image.Resampling.NEAREST)
+              out.save(ROOT/"rooms"/src.name,optimize=True)
+
+          def rect(d,box,fill,outline="#17131b",w=1):
+              d.rectangle(box,fill=fill,outline=outline,width=w)
+
+          def ellipse(d,box,fill,outline="#17131b",w=1):
+              d.ellipse(box,fill=fill,outline=outline,width=w)
+
+          def line(d,pts,fill,w=1):
+              d.line(pts,fill=fill,width=w)
+
+          def person(name,kind):
+              S=4; W,H=64,80
+              im=Image.new("RGBA",(W,H),(0,0,0,0)); d=ImageDraw.Draw(im)
+              # palette
+              skin="#d39a79"; outline="#17131b"; pants="#24262e"; shoes="#d8d9dd"
+              cx=32
+              ellipse(d,(18,70,46,77),"#00000055",None,0)
+
+              if kind=="dad":
+                  bodyw=28; top="#17181d"; head=(18,12,46,40); leg_y=53
+                  rect(d,(19,49,29,69),pants,outline,2); rect(d,(35,49,45,69),pants,outline,2)
+                  rect(d,(17,66,30,73),shoes,outline,2); rect(d,(34,66,47,73),shoes,outline,2)
+                  d.rounded_rectangle((cx-bodyw//2,35,cx+bodyw//2,58),radius=7,fill=top,outline=outline,width=2)
+                  line(d,[(20,41),(13,57)],skin,5); line(d,[(44,41),(51,57)],skin,5)
+                  ellipse(d,head,skin,outline,2)
+                  # bald + grey sides
+                  line(d,[(19,24),(21,18)],"#bcb9b4",4); line(d,[(45,24),(43,18)],"#bcb9b4",4)
+                  # red glasses
+                  ellipse(d,(21,22,31,32),None,"#8b3e3f",2); ellipse(d,(33,22,43,32),None,"#8b3e3f",2); line(d,[(31,27),(33,27)],"#8b3e3f",2)
+                  ellipse(d,(25,26,27,28),outline,None,0); ellipse(d,(37,26,39,28),outline,None,0)
+                  line(d,[(27,34),(32,36),(37,34)],"#7b493b",1)
+              elif kind=="will":
+                  bodyw=20; top="#1d2024"
+                  rect(d,(23,50,30,69),pants,outline,2); rect(d,(34,50,41,69),pants,outline,2)
+                  rect(d,(21,67,31,73),shoes,outline,2); rect(d,(33,67,43,73),shoes,outline,2)
+                  d.rounded_rectangle((22,35,42,56),radius=5,fill=top,outline=outline,width=2)
+                  # apron
+                  d.polygon([(25,42),(39,42),(41,57),(23,57)],fill="#5a3c32",outline=outline)
+                  line(d,[(23,40),(16,56)],skin,4); line(d,[(41,40),(48,56)],skin,4)
+                  ellipse(d,(20,12,44,38),skin,outline,2)
+                  # long hair + ponytail
+                  d.pieslice((18,8,46,36),180,360,fill="#3a2927",outline=outline,width=2)
+                  d.polygon([(19,23),(23,41),(27,32)],fill="#3a2927",outline=outline)
+                  d.polygon([(45,25),(55,31),(47,42),(43,31)],fill="#3a2927",outline=outline)
+                  ellipse(d,(23,22,31,30),None,"#30333a",1); ellipse(d,(33,22,41,30),None,"#30333a",1); line(d,[(31,26),(33,26)],"#30333a",1)
+                  ellipse(d,(26,25,28,27),outline,None,0); ellipse(d,(36,25,38,27),outline,None,0)
+                  line(d,[(27,33),(32,35),(37,33)],"#78473a",1)
+              elif kind=="denise":
+                  bodyw=25; top="#332c36"; apron="#704057"
+                  rect(d,(22,51,30,69),pants,outline,2); rect(d,(34,51,42,69),pants,outline,2)
+                  rect(d,(20,67,31,73),shoes,outline,2); rect(d,(33,67,44,73),shoes,outline,2)
+                  d.rounded_rectangle((cx-bodyw//2,35,cx+bodyw//2,58),radius=7,fill=top,outline=outline,width=2)
+                  d.polygon([(23,43),(41,43),(43,58),(21,58)],fill=apron,outline=outline)
+                  line(d,[(21,41),(13,57)],skin,5); line(d,[(43,41),(51,57)],skin,5)
+                  ellipse(d,(18,11,46,40),skin,outline,2)
+                  # shoulder dark hair, moderate fuller silhouette
+                  d.pieslice((17,7,47,39),180,360,fill="#4a3030",outline=outline,width=2)
+                  d.polygon([(18,24),(19,45),(24,37)],fill="#4a3030",outline=outline)
+                  d.polygon([(46,24),(45,45),(40,37)],fill="#4a3030",outline=outline)
+                  ellipse(d,(25,25,27,27),outline,None,0); ellipse(d,(37,25,39,27),outline,None,0)
+                  line(d,[(27,34),(32,36),(37,34)],"#7e483b",1)
+                  # earrings / festival accent
+                  ellipse(d,(17,31,20,35),"#d7a64d",None,0); ellipse(d,(44,31,47,35),"#d7a64d",None,0)
+              elif kind=="fats":
+                  bodyw=18; top="#17181d"; skin2="#cf9676"
+                  rect(d,(25,50,31,70),pants,outline,2); rect(d,(34,50,40,70),pants,outline,2)
+                  rect(d,(23,68,32,74),"#33363d",outline,2); rect(d,(33,68,42,74),"#33363d",outline,2)
+                  d.rounded_rectangle((23,35,41,55),radius=4,fill=top,outline=outline,width=2)
+                  # black jacket lapels
+                  d.polygon([(23,36),(31,45),(27,55),(22,51)],fill="#2c2e34")
+                  d.polygon([(41,36),(33,45),(37,55),(42,51)],fill="#2c2e34")
+                  line(d,[(24,40),(17,56)],skin2,4); line(d,[(40,40),(47,56)],skin2,4)
+                  # tattoos
+                  line(d,[(18,49),(21,53)],"#4c83a7",1); line(d,[(45,48),(48,52)],"#b14e7f",1)
+                  ellipse(d,(20,12,44,38),skin2,outline,2)
+                  d.pieslice((19,8,45,34),180,360,fill="#222129",outline=outline,width=2)
+                  ellipse(d,(25,24,27,26),outline,None,0); ellipse(d,(37,24,39,26),outline,None,0)
+                  # moustache/goatee + pout
+                  line(d,[(28,31),(32,30),(36,31)],"#3b2829",1)
+                  d.arc((26,31,38,39),200,340,fill="#7c3346",width=2)
+              elif kind=="andrew":
+                  bodyw=20; top="#5b4380"
+                  rect(d,(23,50,30,69),pants,outline,2); rect(d,(34,50,41,69),pants,outline,2)
+                  rect(d,(21,67,31,73),shoes,outline,2); rect(d,(33,67,43,73),shoes,outline,2)
+                  d.rounded_rectangle((22,35,42,56),radius=5,fill=top,outline=outline,width=2)
+                  line(d,[(23,41),(16,56)],skin,4); line(d,[(41,41),(48,56)],skin,4)
+                  ellipse(d,(20,12,44,38),skin,outline,2)
+                  d.pieslice((19,9,45,35),180,360,fill="#25232b",outline=outline,width=2)
+                  # ridiculous gold bucket hat
+                  d.polygon([(18,17),(46,17),(42,10),(22,10)],fill="#d8b252",outline=outline)
+                  ellipse(d,(25,24,27,26),outline,None,0); ellipse(d,(37,24,39,26),outline,None,0)
+                  line(d,[(27,33),(32,35),(37,33)],"#78473a",1)
+
+              out=im.resize((256,320),Image.Resampling.NEAREST)
+              out.save(ROOT/"npcs"/f"{name}.png",optimize=True)
+
+          person("dad","dad")
+          person("will","will")
+          person("denise","denise")
+          person("fats","fats")
+          person("andrew","andrew")
+          PY
+      - name: Commit polished pixel assets
+        run: |
+          git config user.name "Penwortham After Dark Bot"
+          git config user.email "actions@github.com"
+          git add v2/assets/game
+          if git diff --cached --quiet; then
+            echo "No pixel-art changes"
+          else
+            git commit -m "Build coherent V2 pixel-art asset pack"
+            git push
+          fi
