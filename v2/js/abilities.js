@@ -33,9 +33,6 @@ PAD2.abilities={
   },
 
   refreshButton(){
-    const hero=PAD2.state.data.hero;
-    const def=PAD2.characters[hero];
-    const button=document.getElementById('ability');
-    if(button&&def)button.textContent=def.abilityLabel;
+    PAD2.ui?.refresh?.();
   }
 };
