@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+<defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#26112c"/><stop offset="1" stop-color="#07120c"/></linearGradient></defs>
+<rect width="512" height="512" rx="112" fill="url(#g)"/>
+<path d="M80 350h352v38H80z" fill="#b6ff3b"/><path d="M96 326l54-142 54 94 61-162 58 140 42-79 52 149z" fill="#19231d" stroke="#f7f3fb" stroke-width="14" stroke-linejoin="round"/>
+<circle cx="179" cy="232" r="26" fill="#ff4fa3"/><circle cx="334" cy="222" r="26" fill="#b6ff3b"/>
+<text x="256" y="430" text-anchor="middle" font-family="Impact,Arial Black,sans-serif" font-size="62" fill="#f7f3fb">AFTER DARK</text>
+</svg>
