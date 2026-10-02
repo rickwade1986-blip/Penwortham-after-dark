@@ -1,0 +1,65 @@
+name: Build V3 art
+
+on:
+  push:
+    branches: ["v3-rebuild"]
+    paths:
+      - "tools/generate-v3-art.mjs"
+      - ".github/workflows/v3-art.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build-art:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Generate V3 SVG source
+        run: node tools/generate-v3-art.mjs
+
+      - name: Install rasterizer
+        run: pip install cairosvg
+
+      - name: Rasterize V3 art
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import cairosvg
+
+          src = Path("v3/art-src")
+          out = Path("v3/assets")
+          for p in src.rglob("*.svg"):
+              rel = p.relative_to(src)
+              target = (out / rel).with_suffix(".png")
+              target.parent.mkdir(parents=True, exist_ok=True)
+              if "rooms" in rel.parts:
+                  if p.stem == "street":
+                      w,h=2200,1400
+                  else:
+                      w,h=1800,1100
+              else:
+                  w,h=440,640
+              cairosvg.svg2png(url=str(p), write_to=str(target), output_width=w, output_height=h)
+              print(p, "->", target)
+          PY
+
+      - name: Commit generated V3 art
+        run: |
+          git config user.name "Penwortham After Dark Bot"
+          git config user.email "actions@github.com"
+          git add v3/art-src v3/assets
+          if git diff --cached --quiet; then
+            echo "No art changes"
+          else
+            git commit -m "Generate V3 illustrated art pack"
+            git push
+          fi
