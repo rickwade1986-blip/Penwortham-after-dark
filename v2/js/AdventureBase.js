@@ -18,7 +18,7 @@ PAD2.AdventureBase=class extends Phaser.Scene{
     this.controller=new PAD2.PlayerController(this,this.player);
 
     this.cameras.main.startFollow(this.player,true,PAD2.config.camera.lerp,PAD2.config.camera.lerp);
-    this.cameras.main.setZoom(1.03);
+    this.cameras.main.setZoom(1.15);
 
     this.prompt=this.add.container(0,0).setDepth(500).setVisible(false);
     const c=this.add.circle(0,0,24,0x0c0f16,.94).setStrokeStyle(3,0xb7ff39);
