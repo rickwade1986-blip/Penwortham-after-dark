@@ -1315,6 +1315,38 @@
     if (facingLeft) ctx.scale(-1,1);
     if (player.flash > 0 && Math.floor(player.flash*20)%2===0) ctx.globalAlpha=.38;
     ctx.drawImage(img,-w/2,-h+9*viewScale,w,h);
+
+    // Quest items visibly change the character instead of existing only as flags.
+    if (state.hero === 'rick' && state.flags.glasses) {
+      const gy=-h*.69;
+      const rx=9.5*viewScale, ry=7*viewScale;
+      ctx.strokeStyle='#b74650';
+      ctx.lineWidth=Math.max(1.7,2.6*viewScale);
+      ctx.beginPath();
+      ctx.ellipse(-11*viewScale,gy,rx,ry,0,0,Math.PI*2);
+      ctx.ellipse(11*viewScale,gy,rx,ry,0,0,Math.PI*2);
+      ctx.moveTo(-1.5*viewScale,gy);ctx.lineTo(1.5*viewScale,gy);
+      ctx.stroke();
+    }
+
+    if (state.flags.milkHeld) {
+      const mx=-w*.42, my=-h*.25;
+      const mw=19*viewScale,mh=31*viewScale;
+      ctx.fillStyle='#eff6f4';
+      ctx.strokeStyle='#4f94b0';
+      ctx.lineWidth=Math.max(1.5,2.4*viewScale);
+      ctx.beginPath();ctx.roundRect(mx-mw/2,my-mh/2,mw,mh,3*viewScale);ctx.fill();ctx.stroke();
+      ctx.fillStyle='#66afd0';ctx.fillRect(mx-mw/2,my-mh*.18,mw,mh*.18);
+      ctx.fillStyle='#1f5e7a';ctx.font='900 '+Math.max(6,8*viewScale)+'px Arial';
+      ctx.textAlign='center';ctx.fillText('MILK',mx,my+mh*.22);
+    }
+
+    if (state.flags.wristband && !state.flags.glasses) {
+      ctx.strokeStyle='#ff4fa3';
+      ctx.lineWidth=Math.max(2,4*viewScale);
+      ctx.beginPath();ctx.arc(w*.39,-h*.24,7*viewScale,0,Math.PI*2);ctx.stroke();
+    }
+
     ctx.restore();
   }
 
