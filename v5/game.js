@@ -120,8 +120,83 @@
     constructor(){super('Boot')}
     preload(){
       this.load.image('tap-bg','./assets/environments/tap-interior-candidate-01.jpg');
+      this.load.image('tap-exterior','./assets/environments/tap-exterior-candidate-01.jpg');
     }
-    create(){this.scene.start('Tap')}
+    create(){
+      this.scene.start(P.get('scene')==='tap'?'Tap':'Exterior');
+    }
+  }
+
+  function createDevActor(scene,x,y){
+    const key='v5-dev-actor';
+    if(!scene.textures.exists(key)){
+      const g=scene.add.graphics();
+      g.fillStyle(DEV?0xb6ff3b:0x000000,DEV?0.85:0);
+      g.fillCircle(26,26,22);
+      g.lineStyle(DEV?4:0,0x0b0d12,1);
+      g.strokeCircle(26,26,22);
+      g.generateTexture(key,52,52);
+      g.destroy();
+    }
+    const actor=scene.physics.add.sprite(x,y,key).setDepth(50).setCollideWorldBounds(true);
+    actor.body.setCircle(18,8,8);
+    return actor;
+  }
+
+  class Exterior extends Phaser.Scene {
+    constructor(){super('Exterior')}
+    create(){
+      current=this;
+      this.physics.world.setBounds(0,0,1600,900);
+      this.cameras.main.setBounds(0,0,1600,900);
+      this.add.image(800,450,'tap-exterior').setDisplaySize(1600,900).setDepth(-20);
+
+      this.actor=createDevActor(this,820,770);
+
+      const facade=this.add.rectangle(800,295,1600,520,0x000000,0);
+      this.physics.add.existing(facade,true);
+      this.physics.add.collider(this.actor,facade);
+
+      this.hotspots=[
+        {id:'tap-door',x:390,y:635,r:120,label:'ENTER TAP & VINE',act:()=>{
+          this.cameras.main.fadeOut(160,0,0,0);
+          this.time.delayedCall(170,()=>this.scene.start('Tap'));
+        }}
+      ];
+
+      document.body.dataset.v5Ready='true';
+      document.body.dataset.scene='exterior';
+      document.body.dataset.hotspots='tap-door';
+      refreshUI();
+    }
+    nearest(){
+      let best=null,bd=Infinity;
+      for(const h of this.hotspots){
+        const d=Phaser.Math.Distance.Between(this.actor.x,this.actor.y,h.x,h.y);
+        if(d<h.r&&d<bd){best=h;bd=d;}
+      }
+      return best;
+    }
+    doAct(){
+      if(advanceDialogue())return;
+      this.nearest()?.act?.();
+    }
+    swap(){if(dialogue)return;state.hero=state.hero==='rick'?'laura':'rick';refreshUI();}
+    useAbility(){
+      if(dialogue)return;
+      say(state.hero.toUpperCase(),state.hero==='rick'
+        ?['Rick: I can get us straight in.','Laura: It is a door.']
+        :['Laura: I am calling bullshit on needing an ability to enter a pub.']);
+    }
+    update(_,dtMs){
+      if(dialogue)return;
+      let x=stick.x,y=stick.y;const m=Math.hypot(x,y);
+      if(m>.01){x/=Math.max(1,m);y/=Math.max(1,m);}
+      this.actor.setVelocity(x*245,y*245);
+      const n=this.nearest();
+      if(n){ui.prompt.textContent='ACT · '+n.label;ui.prompt.classList.remove('hidden');}
+      else ui.prompt.classList.add('hidden');
+    }
   }
 
   class Tap extends Phaser.Scene {
@@ -144,19 +219,8 @@
       wall(1085,705,260,160);  // lower table
       wall(1020,245,220,150);  // stove/snug furniture
 
-      // DEV-only actor. Shipping build will refuse to use this once approved sprite art lands.
-      this.actor=this.physics.add.circle ? null : null;
-      this.actor=this.physics.add.sprite(860,760);
-      const g=this.add.graphics().setDepth(50);
-      g.fillStyle(DEV?0xb6ff3b:0x000000,DEV?0.85:0);
-      g.fillCircle(0,0,22);
-      g.lineStyle(DEV?4:0,0x0b0d12,1);
-      g.strokeCircle(0,0,22);
-      const tex='v5-dev-actor';
-      if(!this.textures.exists(tex)){g.generateTexture(tex,52,52);g.destroy();}
-      else g.destroy();
-      this.actor.setTexture(tex).setDepth(50).setCollideWorldBounds(true);
-      this.actor.body.setCircle(18);
+      // DEV-only body. Final branch will use approved Rick/Laura production sprites.
+      this.actor=createDevActor(this,860,760);
       this.physics.add.collider(this.actor,this.solids);
 
       this.cameras.main.startFollow(this.actor,true,.12,.12);
@@ -177,6 +241,7 @@
       }
 
       document.body.dataset.v5Ready='true';
+      document.body.dataset.scene='tap';
       document.body.dataset.hotspots=this.hotspots.map(h=>h.id).join(',');
       refreshUI();
 
@@ -296,7 +361,7 @@
     scale:{mode:Phaser.Scale.FIT,autoCenter:Phaser.Scale.CENTER_BOTH,width:1600,height:900},
     physics:{default:'arcade',arcade:{gravity:{x:0,y:0},debug:false}},
     render:{antialias:true,roundPixels:false},
-    scene:[Boot,Tap]
+    scene:[Boot,Exterior,Tap]
   };
   new Phaser.Game(config);
 
