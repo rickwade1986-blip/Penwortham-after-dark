@@ -323,9 +323,10 @@
       const vw=this.scale.width||innerWidth;
       const vh=this.scale.height||innerHeight;
       const fit=Math.min(vw/this.room.w,vh/this.room.h);
+      // Fit the room to the phone first. V2 forced a high minimum zoom and was absurdly close on iPhone.
       const target=this.roomKey==='street'
-        ?Math.max(.68,Math.min(.78,fit*1.22))
-        :Math.max(.76,Math.min(.90,fit*1.18));
+        ?Math.max(.31,Math.min(.50,fit*1.18))
+        :Math.max(.36,Math.min(.58,fit*1.16));
       this.cameras.main.setZoom(target);
     }
 
@@ -445,14 +446,14 @@
 
     createShop(){
       this.addInteractable({
-        id:'milk',x:340,y:520,r:145,label:'MILK',
+        id:'milk',x:590,y:520,r:150,label:'MILK',
         act:()=>{
           if(state.quest!==Q.MILK){
             say('LAURA',['We have milk.','Against all odds.']);
             return;
           }
           state.items.milk=true;state.quest=Q.WILL;save();
-          say(state.hero.toUpperCase(),D.milk[state.hero],()=>this.fxPulse(340,520,'#75bdd5'));
+          say(state.hero.toUpperCase(),D.milk[state.hero],()=>this.fxPulse(590,520,'#75bdd5'));
         }
       });
 
