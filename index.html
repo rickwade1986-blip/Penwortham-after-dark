@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+  <meta name="theme-color" content="#080b12">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="After Dark">
+  <title>Penwortham After Dark</title>
+  <link rel="manifest" href="./manifest.webmanifest">
+  <link rel="stylesheet" href="./style.css">
+</head>
+<body>
+  <div id="game"></div>
+
+  <header id="hud">
+    <div class="brand">PENWORTHAM <b>AFTER DARK</b></div>
+    <div id="objective"><span>OBJECTIVE</span><strong>Wake up, behbeh.</strong></div>
+  </header>
+
+  <div id="status">
+    <div id="hero-name">RICK</div>
+    <div id="hearts"></div>
+    <div id="buff"></div>
+  </div>
+
+  <div id="joystick" aria-label="Drag to move">
+    <div class="joy-ring"><div class="joy-knob"></div></div>
+  </div>
+
+  <div id="actions">
+    <button id="swap" type="button">SWAP</button>
+    <button id="act" type="button">ACT</button>
+    <button id="attack" type="button">ATTACK</button>
+  </div>
+
+  <div id="dialogue" class="hidden">
+    <div id="speaker"></div>
+    <div id="line"></div>
+    <div id="continue">ACT ›</div>
+  </div>
+
+  <div id="toast" class="hidden"></div>
+  <div id="rotate">↻<br><small>turn your phone sideways, behbeh</small></div>
+
+  <script src="https://cdn.jsdelivr.net/npm/phaser@3.90.0/dist/phaser.min.js"></script>
+  <script src="./src/world.js"></script>
+  <script src="./src/art.js"></script>
+  <script src="./game.js"></script>
+</body>
+</html>
