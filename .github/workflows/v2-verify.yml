@@ -42,4 +42,4 @@ jobs:
           head -80 rendered.html
           grep -q 'data-v2-ready="true"' rendered.html
           grep -q '<canvas' rendered.html
-          grep -q 'FOUNDATION TEST' rendered.html
+          grep -q 'USE ABILITY' rendered.html
