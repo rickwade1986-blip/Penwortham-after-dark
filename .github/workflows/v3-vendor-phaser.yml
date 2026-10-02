@@ -1,0 +1,33 @@
+name: Vendor Phaser for V3
+
+on:
+  workflow_dispatch:
+  push:
+    branches: ["v3-rebuild"]
+    paths:
+      - ".github/workflows/v3-vendor-phaser.yml"
+
+permissions:
+  contents: write
+
+jobs:
+  vendor:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download Phaser locally
+        run: |
+          mkdir -p v3/vendor
+          curl -L --fail --retry 3 "https://cdn.jsdelivr.net/npm/phaser@3.90.0/dist/phaser.min.js" -o v3/vendor/phaser.min.js
+          test -s v3/vendor/phaser.min.js
+      - name: Commit vendored Phaser
+        run: |
+          git config user.name "Penwortham After Dark Bot"
+          git config user.email "actions@github.com"
+          git add v3/vendor/phaser.min.js
+          if git diff --cached --quiet; then
+            echo "No vendor changes"
+          else
+            git commit -m "Vendor Phaser locally for reliable V3"
+            git push
+          fi
