@@ -65,6 +65,9 @@ jobs:
 
           testpage fats_runner "http://127.0.0.1:8000/v4/index.html?test=1&reset=1&scene=town&quest=FATS&autotest=fats-runner"
           grep -q 'data-fats-runner-test="true:hotspot=true"' fats_runner.html
+
+          testpage kendal_search "http://127.0.0.1:8000/v4/index.html?test=1&reset=1&scene=kendal&quest=WRISTBAND&autotest=kendal-search"
+          grep -q 'data-kendal-test="GLASSES:wristband=true:searched=3"' kendal_search.html
           testpage shop "http://127.0.0.1:8000/v4/index.html?test=1&scene=shop&quest=MILK"
           testpage tap "http://127.0.0.1:8000/v4/index.html?test=1&scene=tap&quest=WILL"
           testpage turkish "http://127.0.0.1:8000/v4/index.html?test=1&scene=turkish&quest=TURKISH"
