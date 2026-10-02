@@ -184,3 +184,5 @@ jobs:
             git commit -m "Build coherent V2 pixel-art asset pack"
             git push
           fi
+
+# rerun-marker: street-sign-and-scale-pass
