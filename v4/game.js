@@ -1696,10 +1696,14 @@
         state.scene = 'kendal';
         room = SCENES.kendal;
         player.x = 700; player.y = 480;
+        state.flags.kendalSearch = [false,false,false];
         buildScene();
-        const wristband = hotspots.find(h => h.id === 'flashback');
-        if (wristband && wristband.act) wristband.act();
-        drainDialogueForTest();
+        for (const id of ['kendalHat','kendalChair','kendalLost']) {
+          const wristbandSearch = hotspots.find(h => h.id === id);
+          if (wristbandSearch && wristbandSearch.act) wristbandSearch.act();
+          drainDialogueForTest();
+          buildScene();
+        }
 
         state.scene = 'tap';
         room = SCENES.tap;
