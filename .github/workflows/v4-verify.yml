@@ -1,0 +1,74 @@
+name: Verify V4 ground-up build
+
+on:
+  push:
+    branches: ["v4-ground-up"]
+    paths:
+      - "v4/**"
+      - ".github/workflows/v4-verify.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Syntax check
+        run: |
+          node --check v4/art.js
+          node --check v4/game.js
+
+      - name: Start local server
+        run: |
+          python3 -m http.server 8000 >/tmp/v4-http.log 2>&1 &
+          sleep 2
+
+      - name: Smoke important scenes
+        run: |
+          CHROME="$(which google-chrome || which chromium || which chromium-browser)"
+          FLAGS="--headless=new --no-sandbox --disable-gpu --enable-unsafe-swiftshader --disable-dev-shm-usage --virtual-time-budget=5500"
+
+          testpage () {
+            NAME="$1"
+            URL="$2"
+            "$CHROME" $FLAGS --dump-dom "$URL" > "$NAME.html" 2> "$NAME.log" || true
+            echo "==== $NAME ===="
+            grep -o '<body[^>]*>' "$NAME.html" | head -1 || true
+            grep -o 'data-[a-z-]*="[^"]*"' "$NAME.html" | head -12 || true
+            if grep -q 'data-game-error=' "$NAME.html"; then
+              echo "Runtime error found"
+              grep -o 'data-game-error="[^"]*"' "$NAME.html" | head -1
+              exit 1
+            fi
+            grep -q 'data-game-ready="true"' "$NAME.html"
+            grep -q '<canvas' "$NAME.html"
+          }
+
+          testpage town "http://127.0.0.1:8000/v4/index.html?test=1&reset=1&scene=town&quest=CAR"
+          testpage shop "http://127.0.0.1:8000/v4/index.html?test=1&scene=shop&quest=MILK"
+          testpage tap "http://127.0.0.1:8000/v4/index.html?test=1&scene=tap&quest=WILL"
+          testpage turkish "http://127.0.0.1:8000/v4/index.html?test=1&scene=turkish&quest=TURKISH"
+          testpage kendal "http://127.0.0.1:8000/v4/index.html?test=1&scene=kendal&quest=TURKISH"
+
+      - name: Capture screenshots
+        if: always()
+        run: |
+          CHROME="$(which google-chrome || which chromium || which chromium-browser)"
+          FLAGS="--headless=new --no-sandbox --disable-gpu --enable-unsafe-swiftshader --disable-dev-shm-usage --window-size=1800,828 --virtual-time-budget=5500"
+          "$CHROME" $FLAGS --screenshot=v4-town.png "http://127.0.0.1:8000/v4/index.html?test=1&reset=1&scene=town&quest=CAR" || true
+          "$CHROME" $FLAGS --screenshot=v4-tap.png "http://127.0.0.1:8000/v4/index.html?test=1&scene=tap&quest=WILL" || true
+          "$CHROME" $FLAGS --screenshot=v4-turkish.png "http://127.0.0.1:8000/v4/index.html?test=1&scene=turkish&quest=TURKISH" || true
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: v4-screenshots
+          path: |
+            v4-*.png
+            *.html
+            *.log
+          retention-days: 3
