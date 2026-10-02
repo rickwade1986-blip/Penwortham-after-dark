@@ -266,7 +266,7 @@
     const swing = step ? 1 : -1;
     const accent = laura ? '#ff4fa3' : '#b6ff3b';
 
-    return \`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 360">
+    return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 360">
       <defs>
         <linearGradient id="skin2" x1="0" y1="0" x2=".85" y2="1">
           <stop stop-color="#f1c7a9"/><stop offset=".52" stop-color="#d69a79"/><stop offset="1" stop-color="#b96e55"/>
@@ -295,29 +295,29 @@
 
       <g filter="url(#heroShadow)">
         <!-- legs -->
-        <path d="M95 221 C92 251 \${91+swing*5} 286 \${88+swing*4} 318" fill="none" stroke="url(#jeans2)" stroke-width="22" stroke-linecap="round"/>
-        <path d="M145 221 C148 250 \${150-swing*5} 286 \${152-swing*4} 318" fill="none" stroke="url(#jeans2)" stroke-width="22" stroke-linecap="round"/>
-        <path d="M72 \${315+swing*4} Q88 306 107 318 L105 336 H75 Q66 329 72 \${315+swing*4}Z" fill="\${laura?'#16161b':'#e1e7ec'}" stroke="#151218" stroke-width="5"/>
-        <path d="M133 \${318-swing*4} Q153 307 169 321 Q175 329 168 337 H135Z" fill="\${laura?'#101014':'#d4dbe1'}" stroke="#151218" stroke-width="5"/>
-        <path d="M80 316 L104 316M137 319 L163 319" stroke="\${laura?'#38343d':'#7ba7c0'}" stroke-width="4" opacity=".7"/>
+        <path d="M95 221 C92 251 ${91+swing*5} 286 ${88+swing*4} 318" fill="none" stroke="url(#jeans2)" stroke-width="22" stroke-linecap="round"/>
+        <path d="M145 221 C148 250 ${150-swing*5} 286 ${152-swing*4} 318" fill="none" stroke="url(#jeans2)" stroke-width="22" stroke-linecap="round"/>
+        <path d="M72 ${315+swing*4} Q88 306 107 318 L105 336 H75 Q66 329 72 ${315+swing*4}Z" fill="${laura?'#16161b':'#e1e7ec'}" stroke="#151218" stroke-width="5"/>
+        <path d="M133 ${318-swing*4} Q153 307 169 321 Q175 329 168 337 H135Z" fill="${laura?'#101014':'#d4dbe1'}" stroke="#151218" stroke-width="5"/>
+        <path d="M80 316 L104 316M137 319 L163 319" stroke="${laura?'#38343d':'#7ba7c0'}" stroke-width="4" opacity=".7"/>
 
         <!-- torso -->
-        <path d="M78 125 Q119 105 161 126 L154 225 Q120 244 84 225Z" fill="\${laura?'url(#lauraTop)':'url(#rickTop)'}" stroke="#151218" stroke-width="6"/>
+        <path d="M78 125 Q119 105 161 126 L154 225 Q120 244 84 225Z" fill="${laura?'url(#lauraTop)':'url(#rickTop)'}" stroke="#151218" stroke-width="6"/>
         <path d="M88 133 Q119 122 151 135" fill="none" stroke="#ffffff1f" stroke-width="3"/>
 
         <!-- arms -->
-        <path d="M84 145 C64 164 58 190 \${62+swing*4} 222" fill="none" stroke="url(#skin2)" stroke-width="18" stroke-linecap="round"/>
-        <path d="M156 145 C176 164 182 191 \${178-swing*4} 222" fill="none" stroke="url(#skin2)" stroke-width="18" stroke-linecap="round"/>
+        <path d="M84 145 C64 164 58 190 ${62+swing*4} 222" fill="none" stroke="url(#skin2)" stroke-width="18" stroke-linecap="round"/>
+        <path d="M156 145 C176 164 182 191 ${178-swing*4} 222" fill="none" stroke="url(#skin2)" stroke-width="18" stroke-linecap="round"/>
         <path d="M58 211 q-5 17 6 23 q13 3 13-10" fill="url(#skin2)" stroke="#151218" stroke-width="4"/>
         <path d="M182 211 q5 17-6 23 q-13 3-13-10" fill="url(#skin2)" stroke="#151218" stroke-width="4"/>
 
-        \${laura ? \`
+        ${laura ? `
           <g stroke-linecap="round">
             <path d="M61 161 l17 11 M59 176 l18 8 M60 191 l17 9 M62 207 l13 7" stroke="#4a91b0" stroke-width="4"/>
             <path d="M69 153 l-9 60" stroke="#bf4e87" stroke-width="4"/>
             <path d="M66 166 l-7 12 M71 183 l-9 14 M70 199 l-8 12" stroke="#7254a0" stroke-width="3"/>
           </g>
-        \` : ''}
+        ` : ''}
 
         <!-- neck -->
         <path d="M102 112 V132 H138 V110" fill="url(#skin2)" stroke="#151218" stroke-width="5"/>
@@ -330,7 +330,7 @@
         <path d="M128 88 q5 4 1 8" stroke="#9a604f" stroke-width="2.5" fill="none" stroke-linecap="round"/>
         <path d="M112 104 Q123 111 134 102" stroke="#8d4a45" stroke-width="3" fill="none" stroke-linecap="round"/>
 
-        \${laura ? \`
+        ${laura ? `
           <!-- Laura: long blonde hair + floral festival hat -->
           <path d="M88 72 Q80 109 86 155 L103 133 Q95 106 100 77Z" fill="url(#hairLaura)" stroke="#151218" stroke-width="4"/>
           <path d="M151 70 Q161 112 151 158 L134 134 Q143 105 139 77Z" fill="url(#hairLaura)" stroke="#151218" stroke-width="4"/>
@@ -341,15 +341,15 @@
             <circle cx="96" cy="38" r="9" fill="#d84e78"/><circle cx="120" cy="28" r="9" fill="#e8bd4f"/><circle cx="143" cy="40" r="9" fill="#d84e78"/>
             <circle cx="107" cy="47" r="6" fill="#78a659"/><circle cx="134" cy="30" r="6" fill="#78a659"/>
           </g>
-        \` : \`
+        ` : `
           <!-- Rick: styled dark hair and beard -->
           <path d="M84 76 Q85 39 116 28 Q151 22 158 63 Q145 50 134 49 Q114 39 95 55Z" fill="url(#hairRick)" stroke="#151218" stroke-width="5"/>
           <path d="M92 43 Q111 23 139 28 M96 51 Q119 32 150 40" stroke="#6f4e49" stroke-width="5" fill="none" stroke-linecap="round" opacity=".7"/>
           <path d="M88 91 Q91 121 119 132 Q148 120 151 91 Q146 125 134 138 Q118 151 99 139 Q88 124 88 91Z" fill="#3a2a2e"/>
           <path d="M102 98 Q119 110 137 98 Q131 119 119 122 Q107 118 102 98Z" fill="#d29a7a"/>
-        \`}
+        `}
       </g>
-    </svg>\`;
+    </svg>`;
   };
   const npc = (kind) => {
     const c = {
@@ -364,33 +364,33 @@
     const will = kind === 'will';
     const fats = kind === 'fats';
 
-    return \`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 360">
+    return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 360">
       <defs>
-        <linearGradient id="nSkin" x1="0" y1="0" x2=".8" y2="1"><stop stop-color="#efc3a4"/><stop offset="1" stop-color="\${c.skin}"/></linearGradient>
-        <linearGradient id="nTop" x1="0" y1="0" x2=".8" y2="1"><stop stop-color="\${denise?'#67465d':will?'#3a3a42':stocky?'#313238':'#30333b'}"/><stop offset="1" stop-color="\${c.top}"/></linearGradient>
-        <linearGradient id="nPants" x1="0" y1="0" x2=".8" y2="1"><stop stop-color="#3a4049"/><stop offset="1" stop-color="\${c.pants}"/></linearGradient>
+        <linearGradient id="nSkin" x1="0" y1="0" x2=".8" y2="1"><stop stop-color="#efc3a4"/><stop offset="1" stop-color="${c.skin}"/></linearGradient>
+        <linearGradient id="nTop" x1="0" y1="0" x2=".8" y2="1"><stop stop-color="${denise?'#67465d':will?'#3a3a42':stocky?'#313238':'#30333b'}"/><stop offset="1" stop-color="${c.top}"/></linearGradient>
+        <linearGradient id="nPants" x1="0" y1="0" x2=".8" y2="1"><stop stop-color="#3a4049"/><stop offset="1" stop-color="${c.pants}"/></linearGradient>
         <filter id="ns"><feDropShadow dx="0" dy="10" stdDeviation="6" flood-color="#000" flood-opacity=".34"/></filter>
       </defs>
-      <ellipse cx="120" cy="337" rx="\${stocky?59:51}" ry="13" fill="#000" opacity=".22"/>
+      <ellipse cx="120" cy="337" rx="${stocky?59:51}" ry="13" fill="#000" opacity=".22"/>
       <g filter="url(#ns)">
         <!-- legs, Dad is visibly shorter and stockier -->
-        <path d="M99 \${stocky?235:226} L96 316" stroke="url(#nPants)" stroke-width="\${stocky?25:20}" stroke-linecap="round"/>
-        <path d="M141 \${stocky?235:226} L144 316" stroke="url(#nPants)" stroke-width="\${stocky?25:20}" stroke-linecap="round"/>
+        <path d="M99 ${stocky?235:226} L96 316" stroke="url(#nPants)" stroke-width="${stocky?25:20}" stroke-linecap="round"/>
+        <path d="M141 ${stocky?235:226} L144 316" stroke="url(#nPants)" stroke-width="${stocky?25:20}" stroke-linecap="round"/>
         <path d="M80 314 Q98 306 113 318 L110 336 H82 Q73 329 80 314Z" fill="#d9dce0" stroke="#151218" stroke-width="5"/>
         <path d="M128 318 Q147 307 164 321 Q171 329 163 337 H130Z" fill="#d3d6da" stroke="#151218" stroke-width="5"/>
 
         <!-- body -->
-        <path d="M\${stocky?72:82} 146 Q120 129 \${stocky?168:158} 146 L\${stocky?160:153} \${stocky?238:228} Q120 \${stocky?252:241} \${stocky?80:87} \${stocky?238:228}Z" fill="url(#nTop)" stroke="#151218" stroke-width="6"/>
-        <path d="M\${stocky?81:88} 156 C\${stocky?58:67} 179 \${stocky?59:68} 214 \${stocky?64:70} 230" fill="none" stroke="url(#nSkin)" stroke-width="\${stocky?18:16}" stroke-linecap="round"/>
-        <path d="M\${stocky?159:152} 156 C\${stocky?182:173} 179 \${stocky?181:172} 214 \${stocky?176:170} 230" fill="none" stroke="url(#nSkin)" stroke-width="\${stocky?18:16}" stroke-linecap="round"/>
+        <path d="M${stocky?72:82} 146 Q120 129 ${stocky?168:158} 146 L${stocky?160:153} ${stocky?238:228} Q120 ${stocky?252:241} ${stocky?80:87} ${stocky?238:228}Z" fill="url(#nTop)" stroke="#151218" stroke-width="6"/>
+        <path d="M${stocky?81:88} 156 C${stocky?58:67} 179 ${stocky?59:68} 214 ${stocky?64:70} 230" fill="none" stroke="url(#nSkin)" stroke-width="${stocky?18:16}" stroke-linecap="round"/>
+        <path d="M${stocky?159:152} 156 C${stocky?182:173} 179 ${stocky?181:172} 214 ${stocky?176:170} 230" fill="none" stroke="url(#nSkin)" stroke-width="${stocky?18:16}" stroke-linecap="round"/>
 
         <!-- neck -->
         <path d="M103 116 V148 H137 V115" fill="url(#nSkin)" stroke="#151218" stroke-width="5"/>
 
         <!-- head -->
-        <ellipse cx="120" cy="\${stocky?91:88}" rx="\${stocky?39:35}" ry="\${stocky?42:39}" fill="url(#nSkin)" stroke="#151218" stroke-width="5"/>
+        <ellipse cx="120" cy="${stocky?91:88}" rx="${stocky?39:35}" ry="${stocky?42:39}" fill="url(#nSkin)" stroke="#151218" stroke-width="5"/>
 
-        \${will ? \`
+        ${will ? `
           <path d="M86 83 Q88 47 120 40 Q154 43 157 83 Q145 67 132 65 Q112 56 94 68Z" fill="#33262a" stroke="#151218" stroke-width="5"/>
           <path d="M151 82 Q181 88 177 132 Q160 115 148 110Z" fill="#33262a" stroke="#151218" stroke-width="5"/>
           <path d="M96 55 Q117 43 143 49" stroke="#594047" stroke-width="5" fill="none" stroke-linecap="round"/>
@@ -398,9 +398,9 @@
           <path d="M97 111 Q120 127 144 109 Q139 133 120 138 Q103 133 97 111Z" fill="#4a3131" opacity=".9"/>
           <path d="M96 178 L145 178 L151 228 L88 228Z" fill="#17181c" opacity=".75"/>
           <path d="M101 188h39" stroke="#f0eee7" stroke-width="2" opacity=".45"/>
-        \` : ''}
+        ` : ''}
 
-        \${denise ? \`
+        ${denise ? `
           <path d="M84 81 Q87 47 120 41 Q157 43 160 84 Q147 67 133 66 Q112 57 93 71Z" fill="#4b2e31" stroke="#151218" stroke-width="5"/>
           <path d="M87 74 Q72 115 84 158 L101 130 Q91 104 96 79Z" fill="#4b2e31" stroke="#151218" stroke-width="4"/>
           <path d="M155 75 Q169 116 156 158 L139 130 Q149 105 144 79Z" fill="#4b2e31" stroke="#151218" stroke-width="4"/>
@@ -411,9 +411,9 @@
           <circle cx="81" cy="110" r="5" fill="#d8a54c"/><circle cx="159" cy="110" r="5" fill="#d8a54c"/>
           <path d="M89 178 H151 V232 H89Z" fill="#222329" opacity=".76"/>
           <path d="M110 201 q10 9 20 0" fill="none" stroke="#f0d1a0" stroke-width="3"/>
-        \` : ''}
+        ` : ''}
 
-        \${stocky ? \`
+        ${stocky ? `
           <path d="M85 84 Q91 54 120 50 Q151 53 156 86 Q142 71 132 69 Q112 63 94 72Z" fill="#d4cfc9"/>
           <path d="M86 82 L86 109 M155 82 L155 109" stroke="#bbb5ae" stroke-width="10"/>
           <g fill="none" stroke="#9a4147" stroke-width="6"><circle cx="105" cy="92" r="14"/><circle cx="135" cy="92" r="14"/><path d="M119 92h3"/></g>
@@ -422,23 +422,23 @@
             <path d="M-18-40h36" stroke="#fff7df" stroke-width="6"/>
             <path d="M17-24 q18 2 13 19 q-4 11-15 10" fill="none" stroke="#efe4c9" stroke-width="4"/>
           </g>
-        \` : ''}
+        ` : ''}
 
-        \${fats ? \`
+        ${fats ? `
           <path d="M86 81 Q89 45 121 39 Q155 40 160 80 Q145 65 132 65 Q111 55 94 69Z" fill="#202026" stroke="#151218" stroke-width="5"/>
           <path d="M98 55 Q119 40 145 48" stroke="#45434a" stroke-width="5" fill="none" stroke-linecap="round"/>
           <path d="M92 153 L148 153 L159 228 L81 228Z" fill="#111319" stroke="#151218" stroke-width="4"/>
           <path d="M95 159 l-10 59 M145 159 l10 59" stroke="#40444d" stroke-width="4"/>
           <path d="M104 109 Q120 98 138 110" fill="none" stroke="#81394c" stroke-width="5" stroke-linecap="round"/>
           <path d="M108 105 Q120 111 132 105" fill="none" stroke="#3a292b" stroke-width="2"/>
-        \` : ''}
+        ` : ''}
 
         <!-- facial features -->
-        <ellipse cx="108" cy="\${stocky?92:89}" rx="3.2" ry="2.6" fill="#22191b"/>
-        <ellipse cx="134" cy="\${stocky?92:89}" rx="3.2" ry="2.6" fill="#22191b"/>
-        \${!fats ? \`<path d="M106 111 Q120 121 136 110" fill="none" stroke="#7e4940" stroke-width="3" stroke-linecap="round"/>\` : ''}
+        <ellipse cx="108" cy="${stocky?92:89}" rx="3.2" ry="2.6" fill="#22191b"/>
+        <ellipse cx="134" cy="${stocky?92:89}" rx="3.2" ry="2.6" fill="#22191b"/>
+        ${!fats ? `<path d="M106 111 Q120 121 136 110" fill="none" stroke="#7e4940" stroke-width="3" stroke-linecap="round"/>` : ''}
       </g>
-    </svg>\`;
+    </svg>`;
   };
   window.PAD_ART={
     town:data(town),
