@@ -26,6 +26,7 @@ PAD2.AdventureBase=class extends Phaser.Scene{
     this.prompt.add([c,t]);
     this.promptText=t;
 
+    document.body.dataset.v2Ready='true';
     PAD2.ui.refresh();
     this.onRoomCreate?.();
   }
