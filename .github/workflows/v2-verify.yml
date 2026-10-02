@@ -21,9 +21,16 @@ jobs:
           node --check v2/js/writing.js
           node --check v2/js/dialogue.js
           node --check v2/js/abilities.js
+          node --check v2/js/ui.js
           node --check v2/js/player.js
+          node --check v2/js/AdventureBase.js
           node --check v2/js/scenes/BootScene.js
-          node --check v2/js/scenes/TestRoomScene.js
+          node --check v2/js/scenes/StreetScene.js
+          node --check v2/js/scenes/ShopScene.js
+          node --check v2/js/scenes/TapScene.js
+          node --check v2/js/scenes/TurkishScene.js
+          node --check v2/js/scenes/KendalScene.js
+          node --check v2/js/scenes/FatsScene.js
           node --check v2/js/scenes/UIScene.js
           node --check v2/js/boot.js
       - name: Start server
@@ -33,13 +40,18 @@ jobs:
       - name: Browser smoke test
         run: |
           CHROME="$(which google-chrome || which chromium || which chromium-browser)"
-          "$CHROME" --headless=new --no-sandbox --disable-gpu --virtual-time-budget=7000 --dump-dom             http://127.0.0.1:8000/v2/index.html > rendered.html
-          echo "---- rendered state ----"
-          grep -o 'data-v2-[^ >]*' rendered.html || true
-          grep -o '<canvas[^>]*>' rendered.html | head -1 || true
-          grep -o 'FOUNDATION TEST' rendered.html | head -1 || true
-          echo "---- top of rendered DOM ----"
-          head -80 rendered.html
+          "$CHROME" --headless=new --no-sandbox --disable-gpu --virtual-time-budget=8000 --dump-dom             http://127.0.0.1:8000/v2/index.html?reset=1 > rendered.html
           grep -q 'data-v2-ready="true"' rendered.html
+          grep -q 'data-v2-room="StreetScene"' rendered.html
           grep -q '<canvas' rendered.html
-          grep -q 'USE ABILITY' rendered.html
+          grep -q "Find Rick's car" rendered.html
+          grep -q 'BULLSHIT' rendered.html
+      - name: Capture V2 screenshot
+        run: |
+          CHROME="$(which google-chrome || which chromium || which chromium-browser)"
+          "$CHROME" --headless=new --no-sandbox --disable-gpu --window-size=1600,900 --virtual-time-budget=5000             --screenshot=v2-smoke.png http://127.0.0.1:8000/v2/index.html?reset=1
+      - uses: actions/upload-artifact@v4
+        with:
+          name: v2-smoke
+          path: v2-smoke.png
+          retention-days: 3
