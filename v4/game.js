@@ -32,6 +32,8 @@
     WRISTBAND: 'WRISTBAND',
     GLASSES: 'GLASSES',
     DENISE: 'DENISE',
+    CLEAR_TAP: 'CLEAR_TAP',
+    RETURN_TO_DENISE: 'RETURN_TO_DENISE',
     TURKISH: 'TURKISH',
     FATS: 'FATS',
     DONE: 'DONE'
@@ -44,6 +46,8 @@
     [Q.WRISTBAND]: "Find Will's Kendal wristband",
     [Q.GLASSES]: 'Take the wristband back to Will',
     [Q.DENISE]: 'Now find Denise. She knows everything.',
+    [Q.CLEAR_TAP]: 'Help Denise clear 3 abandoned glasses',
+    [Q.RETURN_TO_DENISE]: 'Take the empties back to Denise',
     [Q.TURKISH]: 'Get some food at The Turkish',
     [Q.FATS]: 'FATS has had a roast incident. Find him.',
     [Q.DONE]: 'Survived. Go somewhere stupidly expensive for a water.'
@@ -86,7 +90,8 @@
         kendal: false,
         wine: false,
         beat: false,
-        bossDefeated: false
+        bossDefeated: false,
+        tapGlasses: [false,false,false]
       }
     };
   }
@@ -107,6 +112,7 @@
     const testQuest = params.get('quest');
     if (SCENES[testScene]) s.scene = testScene;
     if (Object.values(Q).includes(testQuest)) s.quest = testQuest;
+    if (!Array.isArray(s.flags.tapGlasses) || s.flags.tapGlasses.length !== 3) s.flags.tapGlasses = [false,false,false];
     if (params.get('test') === '1') s.flags.started = true;
     return s;
   }
@@ -479,7 +485,7 @@
       });
 
       addHotspot({
-        id:'denise', x:600, y:520, r:105, label:'DENISE',
+        id:'denise', x:600, y:520, r:112, label:'DENISE',
         act:() => {
           if ([Q.WILL,Q.WRISTBAND,Q.GLASSES].includes(state.quest)) {
             say('DENISE', state.quest === Q.WILL
@@ -487,14 +493,53 @@
               : ['Sort Will out first.', 'Honestly, this is between you two now.']);
             return;
           }
-          say('DENISE', lines.denise[state.hero], () => {
-            state.flags.denise = true;
-            state.flags.wine = true;
-            if (state.quest === Q.DENISE) state.quest = Q.TURKISH;
-            save();
-            showToast('TACTICAL SAUVIGNON ACQUIRED', 1200);
-          });
-        }
+
+          if (state.quest === Q.DENISE) {
+            say('DENISE', [
+              'Right. Before you two fuck off for food—',
+              'Laura: Here we go.',
+              'Denise: Three abandoned glasses. Clear them for me.',
+              'Rick: Is Will not literally working?',
+              "Denise: Will's busy being a pub.",
+              'Dad: I am a customer. Do not involve me.',
+              'Denise: Exactly.'
+            ], () => {
+              state.flags.denise = true;
+              state.flags.tapGlasses = [false,false,false];
+              advanceQuest(Q.CLEAR_TAP);
+            });
+            return;
+          }
+
+          if (state.quest === Q.CLEAR_TAP) {
+            const done = state.flags.tapGlasses.filter(Boolean).length;
+            say('DENISE', [
+              done === 0 ? 'Three glasses. None moved. Incredible start.' :
+              done === 1 ? 'One down. Two to go.' :
+              'Two down. One left. You can smell the Sauvignon from here.'
+            ]);
+            return;
+          }
+
+          if (state.quest === Q.RETURN_TO_DENISE) {
+            say('DENISE', [
+              'Look at that. Actual useful behaviour.',
+              'Rick: I am putting this on LinkedIn.',
+              'Laura: Please do not.',
+              'Denise: Here— tactical Sauvignon for Laura. Now go eat before FATS starts another incident.'
+            ], () => {
+              state.flags.wine = true;
+              advanceQuest(Q.TURKISH);
+              showToast('TACTICAL SAUVIGNON ACQUIRED', 1250);
+            });
+            return;
+          }
+
+          say('DENISE', lines.denise[state.hero]);
+        },
+        ability:() => say(state.hero.toUpperCase(), state.hero === 'rick'
+          ? ['Rick: I can talk my way out of glass collecting.', 'Denise: You can talk while collecting them.']
+          : ['Laura: This is unpaid labour.', 'Denise: Correct. Welcome to hospitality.'])
       });
 
       addHotspot({
@@ -510,7 +555,43 @@
         act:() => setScene('kendal')
       });
 
-      addHotspot({ id:'exit', x:600, y:650, r:110, label:'OUT', act:() => setScene('town',{x:1320,y:535}) });
+      const tapGlassSpots = [
+        {x:205,y:610,label:'ABANDONED PINT'},
+        {x:590,y:625,label:'SUSPICIOUS WINE GLASS'},
+        {x:995,y:605,label:'ANOTHER BLOODY GLASS'}
+      ];
+
+      tapGlassSpots.forEach((g,i) => {
+        if (state.quest === Q.CLEAR_TAP && !state.flags.tapGlasses[i]) {
+          addHotspot({
+            id:'tapGlass'+i, x:g.x, y:g.y, r:82, label:g.label,
+            act:() => {
+              state.flags.tapGlasses[i] = true;
+              const total = state.flags.tapGlasses.filter(Boolean).length;
+              save();
+              burst(g.x,g.y,i===1?'#f5efe7':'#f2c766',12,65);
+              showToast(total + '/3 GLASSES CLEARED', 650);
+              if (total >= 3) advanceQuest(Q.RETURN_TO_DENISE);
+              else buildScene();
+            },
+            ability:() => {
+              if (state.hero === 'rick') say('RICK',['That could be table decoration.','Laura: Pick up the fucking glass.']);
+              else say('LAURA',['It is literally empty.','Rick: Strong analysis.']);
+            }
+          });
+        }
+      });
+
+      addHotspot({
+        id:'exit', x:600, y:650, r:110, label:'OUT',
+        act:() => {
+          if ([Q.CLEAR_TAP,Q.RETURN_TO_DENISE].includes(state.quest)) {
+            say('DENISE',['Oi. Glasses first.','Rick: Mine or the pub ones?','Denise: Both, apparently.']);
+            return;
+          }
+          setScene('town',{x:1320,y:535});
+        }
+      });
     }
 
     if (scene === 'turkish') {
@@ -1030,6 +1111,32 @@
     }
   }
 
+  function drawTapCollectibles() {
+    if (currentSceneName() !== 'tap' || ![Q.CLEAR_TAP,Q.RETURN_TO_DENISE].includes(state.quest)) return;
+    const spots = [{x:205,y:610,type:'pint'},{x:590,y:625,type:'wine'},{x:995,y:605,type:'pint'}];
+    const t = performance.now()/1000;
+    spots.forEach((g,i) => {
+      if (state.flags.tapGlasses[i]) return;
+      const p = worldToScreen(g.x,g.y + Math.sin(t*2.4+i)*3);
+      const s = Math.max(.48,viewScale);
+      ctx.save();
+      ctx.translate(p.x,p.y);
+      ctx.shadowColor = i===1 ? '#ffffff' : '#f2c766';
+      ctx.shadowBlur = 15*s;
+      ctx.lineWidth = 3*s;
+      ctx.strokeStyle = '#f4eee7';
+      ctx.fillStyle = g.type==='wine' ? 'rgba(235,245,236,.18)' : 'rgba(210,154,66,.58)';
+      if (g.type==='wine') {
+        ctx.beginPath();ctx.ellipse(0,-18*s,13*s,18*s,0,0,Math.PI*2);ctx.fill();ctx.stroke();
+        ctx.beginPath();ctx.moveTo(0,0);ctx.lineTo(0,22*s);ctx.moveTo(-10*s,23*s);ctx.lineTo(10*s,23*s);ctx.stroke();
+      } else {
+        ctx.beginPath();ctx.roundRect(-12*s,-27*s,24*s,43*s,5*s);ctx.fill();ctx.stroke();
+        ctx.fillStyle='#fff6';ctx.fillRect(-8*s,-18*s,16*s,5*s);
+      }
+      ctx.restore();
+    });
+  }
+
   function drawAmbient() {
     const t = performance.now()/1000;
     if (currentSceneName() === 'town') {
@@ -1080,6 +1187,7 @@
     const bg = images[room.bg];
     if (bg) drawWorldImage(bg);
     drawAmbient();
+    drawTapCollectibles();
 
     npcs.forEach(drawNpc);
     drawBoss();
@@ -1241,6 +1349,35 @@
           state.quest + ':wristband=' + String(!!state.flags.wristband) +
           ':glasses=' + String(!!state.flags.glasses) +
           ':hotspots=' + (document.body.dataset.hotspots || '');
+      }
+
+
+      if (params.get('autotest') === 'denise-glasses') {
+        state.scene = 'tap';
+        room = SCENES.tap;
+        player.x = 600; player.y = 520;
+        state.quest = Q.DENISE;
+        state.flags.tapGlasses = [false,false,false];
+        buildScene();
+
+        const denise1 = hotspots.find(h => h.id === 'denise');
+        denise1?.act?.();
+        drainDialogueForTest();
+
+        for (let i=0;i<3;i++) {
+          buildScene();
+          const g = hotspots.find(h => h.id === 'tapGlass'+i);
+          g?.act?.();
+        }
+
+        buildScene();
+        const denise2 = hotspots.find(h => h.id === 'denise');
+        denise2?.act?.();
+        drainDialogueForTest();
+
+        document.body.dataset.deniseTest =
+          state.quest + ':wine=' + String(!!state.flags.wine) +
+          ':glasses=' + state.flags.tapGlasses.filter(Boolean).length;
       }
 
       requestAnimationFrame(loop);
