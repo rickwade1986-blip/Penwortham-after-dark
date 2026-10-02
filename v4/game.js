@@ -27,9 +27,10 @@
 
   const Q = Object.freeze({
     CAR: 'CAR',
-    GLASSES: 'GLASSES',
     MILK: 'MILK',
     WILL: 'WILL',
+    WRISTBAND: 'WRISTBAND',
+    GLASSES: 'GLASSES',
     DENISE: 'DENISE',
     TURKISH: 'TURKISH',
     FATS: 'FATS',
@@ -38,10 +39,11 @@
 
   const objectiveText = {
     [Q.CAR]: "Find Rick's car",
-    [Q.GLASSES]: 'Now find the glasses, genius',
     [Q.MILK]: 'Behbeh, we need milk too',
-    [Q.WILL]: 'Go to Tap & Vine. Find Will.',
-    [Q.DENISE]: 'Find Denise. She knows everything.',
+    [Q.WILL]: "Go to Tap & Vine. Will's got the glasses.",
+    [Q.WRISTBAND]: "Find Will's Kendal wristband",
+    [Q.GLASSES]: 'Take the wristband back to Will',
+    [Q.DENISE]: 'Now find Denise. She knows everything.',
     [Q.TURKISH]: 'Get some food at The Turkish',
     [Q.FATS]: 'FATS has had a roast incident. Find him.',
     [Q.DONE]: 'Survived. Go somewhere stupidly expensive for a water.'
@@ -76,6 +78,7 @@
         car: false,
         glasses: false,
         milk: false,
+        wristband: false,
         will: false,
         denise: false,
         dad: false,
@@ -322,23 +325,11 @@
         id:'car', x:255, y:690, r:115, label:'RICK’S CAR',
         act:() => {
           if (state.quest === Q.CAR) {
-            advanceQuest(Q.GLASSES, 'car');
+            advanceQuest(Q.MILK, 'car');
             say(state.hero.toUpperCase(), lines.car[state.hero], () => burst(255,690,'#b6ff3b',18));
           } else say('RICK', ['Yep. Still the car. Miraculous.']);
         }
       });
-
-      if (state.quest !== Q.CAR || state.flags.glasses) {
-        addHotspot({
-          id:'glasses', x:430, y:715, r:125, label:'GLASSES',
-          act:() => {
-            if (state.quest === Q.GLASSES) {
-              advanceQuest(Q.MILK, 'glasses');
-              say(state.hero.toUpperCase(), lines.glasses[state.hero], () => burst(430,715,'#eaf6ff',18));
-            } else say('LAURA', ['We have the glasses. Try not to invent a second pair to lose.']);
-          }
-        });
-      }
 
       addHotspot({
         id:'coffee', x:270, y:475, r:95, label:'4AM COFFEE',
@@ -353,8 +344,8 @@
       addHotspot({
         id:'shopDoor', x:1390, y:815, r:105, label:'BEHBEH SHOP',
         act:() => {
-          if ([Q.CAR,Q.GLASSES].includes(state.quest)) {
-            say('LAURA', ['Car. Glasses. Then milk.', 'One crisis at a time.']);
+          if (state.quest === Q.CAR) {
+            say('LAURA', ['Car first.', 'Then we can begin the rest of your administrative collapse.']);
           } else setScene('shop');
         }
       });
@@ -362,7 +353,7 @@
       addHotspot({
         id:'tapDoor', x:1320, y:474, r:105, label:'TAP & VINE',
         act:() => {
-          if ([Q.CAR,Q.GLASSES,Q.MILK].includes(state.quest)) {
+          if ([Q.CAR,Q.MILK].includes(state.quest)) {
             say('LAURA', ['Milk first.', 'Rick: The Tap is basically hydration.', 'Laura: It really is not.']);
           } else setScene('tap');
         }
@@ -437,19 +428,63 @@
       addNpc({ id:'dad', key:'dad', x:935, y:505, w:98, h:142, label:'DAD' });
 
       addHotspot({
-        id:'will', x:300, y:510, r:100, label:'WILL',
-        act:() => say('WILL', lines.will[state.hero], () => {
-          state.flags.will = true;
-          if (state.quest === Q.WILL) state.quest = Q.DENISE;
-          save();
-        })
+        id:'will', x:300, y:510, r:110, label:'WILL',
+        act:() => {
+          if (state.quest === Q.WILL) {
+            say('WILL', [
+              "Yeah, I've got your glasses.",
+              "Rick: Why have you got my glasses?",
+              "Will: More importantly, why did you leave them in the Tap?",
+              "Laura: He's got you there.",
+              "Will: Tell you what — find my Kendal wristband and we're even.",
+              "Rick: This feels like extortion.",
+              "Will: Hospitality."
+            ], () => {
+              state.flags.will = true;
+              advanceQuest(Q.WRISTBAND);
+            });
+            return;
+          }
+
+          if (state.quest === Q.GLASSES && state.flags.wristband) {
+            say('WILL', [
+              "That's the one.",
+              "Here. Your glasses.",
+              "Laura: An unnecessarily complicated transaction for an object he already owned.",
+              "Rick: I feel like I won.",
+              "Laura: You absolutely didn't."
+            ], () => {
+              state.flags.glasses = true;
+              advanceQuest(Q.DENISE);
+              showToast('GLASSES RECOVERED. SOMEHOW.', 1250);
+            });
+            return;
+          }
+
+          if (state.quest === Q.WRISTBAND) {
+            say('WILL', [
+              "Wristband first.",
+              "It's on the Kendal display.",
+              "Rick: You mean the display about a festival none of us can fully remember?",
+              "Will: That's the one."
+            ]);
+            return;
+          }
+
+          say('WILL', lines.will[state.hero]);
+        },
+        ability:() => say(state.hero.toUpperCase(), state.hero === 'rick'
+          ? ['This is literally blackmail.', 'Will: It is a loyalty scheme.']
+          : ['Bullshit.', 'Will: Counterpoint: pub.'])
       });
 
       addHotspot({
         id:'denise', x:600, y:520, r:105, label:'DENISE',
         act:() => {
-          if (state.quest === Q.WILL && !state.flags.will) {
-            say('DENISE', ['Speak to Will first.', 'He has been dying to say the pub thing.']);
+          if ([Q.WILL,Q.WRISTBAND,Q.GLASSES].includes(state.quest)) {
+            say('DENISE', state.quest === Q.WILL
+              ? ['Speak to Will first.', 'He has been waiting to turn your own glasses into a side quest.']
+              : ['Sort Will out first.', 'Honestly, this is between you two now.']);
             return;
           }
           say('DENISE', lines.denise[state.hero], () => {
@@ -504,8 +539,25 @@
 
     if (scene === 'kendal') {
       addHotspot({
-        id:'flashback', x:700, y:480, r:150, label:'QUESTIONABLE FESTIVAL MEMORY',
+        id:'flashback', x:700, y:480, r:165, label: state.quest === Q.WRISTBAND ? "WILL'S WRISTBAND" : 'QUESTIONABLE FESTIVAL MEMORY',
         act:() => {
+          if (state.quest === Q.WRISTBAND && !state.flags.wristband) {
+            say('LAURA', [
+              "There. Will's wristband.",
+              "Rick: Why is it here?",
+              "Laura: Because apparently the entire town operates like a Zelda dungeon now.",
+              "Rick: Fair."
+            ], () => {
+              state.flags.wristband = true;
+              state.flags.kendal = true;
+              state.flags.beat = true;
+              advanceQuest(Q.GLASSES);
+              showToast("WILL'S WRISTBAND ACQUIRED", 1400);
+              burst(700,480,'#ff4fa3',30);
+            });
+            return;
+          }
+
           if (!state.flags.kendal) {
             say('LAURA', [
               'I remember this bit.',
@@ -515,7 +567,7 @@
               state.flags.kendal = true;
               state.flags.beat = true;
               save();
-              showToast('DUSTY BEAT + FESTIVAL WRISTBAND', 1400);
+              showToast('DUSTY FESTIVAL MEMORY UNLOCKED', 1250);
               burst(700,480,'#ff4fa3',28);
             });
           } else {
@@ -667,10 +719,7 @@
       n.act();
       return;
     }
-    if (currentSceneName() === 'town' && state.quest === Q.GLASSES && Math.hypot(430-player.x,715-player.y) < 175) {
-      advanceQuest(Q.MILK, 'glasses');
-      say(state.hero.toUpperCase(), lines.glasses[state.hero], () => burst(430,715,'#eaf6ff',18));
-    }
+
   }
 
   function doSwap() {
@@ -1032,7 +1081,6 @@
     if (bg) drawWorldImage(bg);
     drawAmbient();
 
-    drawGlasses();
     npcs.forEach(drawNpc);
     drawBoss();
     drawProjectiles();
@@ -1141,12 +1189,10 @@
       document.body.dataset.scene=state.scene;
       document.body.dataset.quest=state.quest;
 
-      // CI-only progression check: reproduce the exact car -> glasses transition
-      // that softlocked on iPhone and prove the glasses hotspot exists immediately.
-      if (params.get('autotest') === 'car-glasses') {
+      // CI-only progression check: the car must unlock the shop/milk path.
+      if (params.get('autotest') === 'car-milk') {
         state.quest = Q.CAR;
         state.flags.car = false;
-        state.flags.glasses = false;
         buildScene();
         const car = hotspots.find(h => h.id === 'car');
         if (car && car.act) car.act();
