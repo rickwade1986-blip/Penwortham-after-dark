@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900">
+ <defs>
+  <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#263d36"/><stop offset="1" stop-color="#162921"/></linearGradient>
+  <linearGradient id="wood" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#6a4936"/><stop offset="1" stop-color="#3d2b24"/></linearGradient>
+  <linearGradient id="warm" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#f2bf65"/><stop offset="1" stop-color="#b86f3f"/></linearGradient>
+  <pattern id="brick" width="80" height="38" patternUnits="userSpaceOnUse"><rect width="80" height="38" fill="#4f342d"/><path d="M0 0H80M0 38H80M40 0V19M0 19H80M0 19V38M80 19V38" stroke="#69463b" stroke-width="3" opacity=".55"/></pattern>
+  <pattern id="tile" width="70" height="70" patternUnits="userSpaceOnUse"><rect width="70" height="70" fill="#233a43"/><path d="M35 5L65 35 35 65 5 35Z" fill="none" stroke="#6bb0b7" stroke-width="4" opacity=".45"/><circle cx="35" cy="35" r="7" fill="#d79c50" opacity=".55"/></pattern>
+  <filter id="shadow"><feDropShadow dx="0" dy="12" stdDeviation="12" flood-opacity=".35"/></filter>
+ </defs>
+<rect width="1600" height="900" fill="#171219"/>
+<rect x="0" y="0" width="1600" height="900" fill="url(#brick)" opacity=".45"/>
+<circle cx="800" cy="450" r="360" fill="#251927" stroke="#4d2f47" stroke-width="20"/>
+<circle cx="800" cy="450" r="260" fill="#171219" stroke="#ff5e67" stroke-width="8" stroke-dasharray="26 22"/>
+<rect x="560" y="65" width="480" height="100" rx="20" fill="#0f1015" stroke="#ff5e67" stroke-width="6"/>
+<text x="800" y="125" text-anchor="middle" font-family="Arial Black" font-size="44" fill="#f5efe7">PAD THAI PALACE</text>
+<g transform="translate(260 250)" filter="url(#shadow)">
+ <ellipse cx="0" cy="0" rx="160" ry="70" fill="#e6dccb" stroke="#4c3528" stroke-width="9"/>
+ <ellipse cx="-30" cy="0" rx="55" ry="35" fill="#92563c"/><circle cx="62" cy="-8" r="26" fill="#6f9b50"/><circle cx="85" cy="20" r="22" fill="#d59a46"/>
+</g>
+<g transform="translate(1325 290)">
+ <rect x="-90" y="-58" width="180" height="116" rx="18" fill="#f2eee6" stroke="#c43a3a" stroke-width="9"/>
+ <text x="0" y="16" text-anchor="middle" font-family="Arial Black" font-size="46" fill="#c43a3a">KFC</text>
+</g>
+<g font-family="Arial Black">
+ <text x="800" y="755" text-anchor="middle" font-size="27" fill="#ff8c94">SUNDAY ROAST INCIDENT RESPONSE CENTRE</text>
+ <text x="800" y="795" text-anchor="middle" font-size="18" fill="#d9c8d6">FIRST PUB: NO ROAST • SECOND PUB: 20 MINUTES</text>
+</g>
+</svg>
