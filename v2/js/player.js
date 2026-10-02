@@ -18,7 +18,7 @@ PAD2.PlayerController=class{
     const key=this.key();
     if(this.scene.textures.exists(key))this.sprite.setTexture(key);
     this.sprite.setFlipX(this.direction==='left');
-    const scale=this.hero==='laura'?0.38:0.40;
+    const scale=this.hero==='laura'?0.62:0.68;
     this.sprite.setScale(scale);
     this.sprite.body?.setSize(92,70,true);
   }
