@@ -1,0 +1,11 @@
+{
+  "name":"Penwortham After Dark",
+  "short_name":"After Dark",
+  "start_url":"./",
+  "scope":"./",
+  "display":"standalone",
+  "orientation":"landscape",
+  "background_color":"#070910",
+  "theme_color":"#070910",
+  "description":"Rick + Laura's unnecessarily elaborate little RPG."
+}
