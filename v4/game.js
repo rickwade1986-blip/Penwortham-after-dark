@@ -339,8 +339,11 @@
       addHotspot({
         id:'coffee', x:270, y:475, r:95, label:'4AM COFFEE',
         act:() => say(state.hero.toUpperCase(), state.hero === 'rick'
-          ? ['Coffee?', 'Laura: It is nearly 4am.', 'Rick: So that is a yes.']
-          : ['No.', 'Rick: I did not ask anything yet.', 'Laura: You were going to say coffee.'])
+          ? ['Coffee?', 'Laura: It is nearly 4am.', 'Rick: So that is a yes.', 'Laura: Your heart is filing a grievance.']
+          : ['No.', 'Rick: I did not ask anything yet.', 'Laura: You were going to say coffee.', 'Rick: I feel profiled.']),
+        ability:() => say(state.hero.toUpperCase(), state.hero === 'rick'
+          ? ['I could absolutely drink another one.', 'Laura: You are one coffee away from seeing through time.']
+          : ['Bullshit.', 'Rick: What?', 'Laura: The entire concept of another coffee.'])
       });
 
       addHotspot({
@@ -372,6 +375,16 @@
       addHotspot({
         id:'kendalPoster', x:610, y:330, r:75, label:'KENDAL CALLING',
         act:() => setScene('kendal')
+      });
+
+      addHotspot({
+        id:'bench', x:970, y:455, r:110, label:'SUSPICIOUS BENCH',
+        act:() => say(state.hero.toUpperCase(), state.hero === 'rick'
+          ? ['Sit down for a minute?', 'Laura: Every time you say “a minute” we lose forty-five minutes.']
+          : ['I am not sitting there.', 'Rick: Why?', 'Laura: Look at it. It knows what it did.']),
+        ability:() => say(state.hero.toUpperCase(), state.hero === 'rick'
+          ? ['I could sell this bench a consultancy package.']
+          : ['Bullshit bench.'])
       });
 
       if ([Q.FATS,Q.DONE].includes(state.quest)) {
@@ -840,10 +853,14 @@
   function drawNpc(n) {
     const p = worldToScreen(n.x,n.y);
     const img = images[n.key];
-    const w = n.w*viewScale, h = n.h*viewScale;
+    const t = performance.now()/1000;
+    const phase = ({will:0,denise:1.6,dad:3.1,fats:4.2}[n.key] || 0);
+    const bob = Math.sin(t*2.05 + phase) * 2.4 * viewScale;
+    const breathe = 1 + Math.sin(t*1.4 + phase) * .008;
+    const w = n.w*viewScale*breathe, h = n.h*viewScale;
     ctx.save();
     ctx.globalAlpha = 1;
-    ctx.drawImage(img, p.x-w/2, p.y-h+8*viewScale, w, h);
+    ctx.drawImage(img, p.x-w/2, p.y-h+8*viewScale+bob, w, h);
     ctx.restore();
 
     const d = Math.hypot(n.x-player.x,n.y-player.y);
@@ -960,11 +977,56 @@
     }
   }
 
+  function drawAmbient() {
+    const t = performance.now()/1000;
+    if (currentSceneName() === 'town') {
+      // Warm pub-light reflections move across the road.
+      for (let i=0;i<5;i++) {
+        const wx = 520 + i*220 + Math.sin(t*.55+i)*20;
+        const wy = 565 + Math.sin(t*.8+i*.7)*10;
+        const p = worldToScreen(wx,wy);
+        const r = (10 + i*2) * viewScale;
+        const g = ctx.createRadialGradient(p.x,p.y,0,p.x,p.y,r*4);
+        g.addColorStop(0,'rgba(255,205,110,.19)');
+        g.addColorStop(1,'rgba(255,205,110,0)');
+        ctx.fillStyle=g;
+        ctx.beginPath();ctx.arc(p.x,p.y,r*4,0,Math.PI*2);ctx.fill();
+      }
+
+      // Moving pigeons, because Penwortham nightlife apparently needed a wildlife system.
+      for (let i=0;i<3;i++) {
+        const px = ((t*(46+i*9)+i*520)%1720)-70;
+        const py = 610 + i*35 + Math.sin(t*3+i)*8;
+        const p=worldToScreen(px,py);
+        ctx.save();
+        ctx.translate(p.x,p.y);
+        ctx.strokeStyle='rgba(215,220,225,.68)';
+        ctx.lineWidth=Math.max(1.5,3*viewScale);
+        ctx.beginPath();
+        ctx.moveTo(-12*viewScale,0);
+        ctx.quadraticCurveTo(-4*viewScale,-8*viewScale,0,0);
+        ctx.quadraticCurveTo(5*viewScale,-8*viewScale,12*viewScale,0);
+        ctx.stroke();
+        ctx.restore();
+      }
+
+      // Occasional passing headlights at the very bottom edge.
+      const carX = ((t*115)%1850)-140;
+      const cp = worldToScreen(carX,835);
+      ctx.save();
+      ctx.globalAlpha=.55;
+      ctx.fillStyle='#f7e8b4';
+      ctx.beginPath();ctx.arc(cp.x,cp.y,5*viewScale,0,Math.PI*2);ctx.arc(cp.x+42*viewScale,cp.y,5*viewScale,0,Math.PI*2);ctx.fill();
+      ctx.restore();
+    }
+  }
+
   function render() {
     ctx.setTransform(dpr,0,0,dpr,0,0);
     ctx.clearRect(0,0,innerWidth,innerHeight);
     const bg = images[room.bg];
     if (bg) drawWorldImage(bg);
+    drawAmbient();
 
     drawGlasses();
     npcs.forEach(drawNpc);
