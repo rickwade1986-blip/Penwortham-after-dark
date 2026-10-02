@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+  <meta name="theme-color" content="#090b10">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <title>Penwortham After Dark — V2</title>
+  <link rel="stylesheet" href="./styles.css">
+</head>
+<body>
+  <div id="game"></div>
+
+  <header id="hud">
+    <div class="logo">PENWORTHAM <b>AFTER DARK</b></div>
+    <div id="objective">FOUNDATION TEST</div>
+  </header>
+
+  <div id="hero-chip">
+    <strong id="hero-name">RICK</strong>
+    <span id="hero-hp">♥♥♥♥♥♥</span>
+  </div>
+
+  <div id="joy-zone" aria-label="Move">
+    <div id="joy-base" class="hidden">
+      <div id="joy-knob"></div>
+    </div>
+  </div>
+
+  <div id="buttons">
+    <button id="swap" type="button">SWAP</button>
+    <button id="act" type="button">ACT</button>
+    <button id="ability" type="button">ABILITY</button>
+  </div>
+
+  <div id="dialogue" class="hidden" role="dialog" aria-live="polite">
+    <div id="dialogue-portrait"></div>
+    <div class="dialogue-copy">
+      <div id="dialogue-name"></div>
+      <div id="dialogue-line"></div>
+      <div class="dialogue-next">ACT ›</div>
+    </div>
+  </div>
+
+  <div id="rotate">↻<br><small>landscape, behbeh</small></div>
+
+  <script src="https://cdn.jsdelivr.net/npm/phaser@3.90.0/dist/phaser.min.js"></script>
+  <script src="./js/config.js"></script>
+  <script src="./js/state.js"></script>
+  <script src="./js/dialogue.js"></script>
+  <script src="./js/player.js"></script>
+  <script src="./js/scenes/BootScene.js"></script>
+  <script src="./js/scenes/TestRoomScene.js"></script>
+  <script src="./js/scenes/UIScene.js"></script>
+  <script src="./js/boot.js"></script>
+</body>
+</html>
