@@ -241,11 +241,11 @@ function drawDog(c,x,y,s=1){
 function hotspotList(){
  const h=[
   {id:'car',x:245,y:735,r:95,label:'RICK’S CAR',act:carAct},
-  {id:'coffee',x:245,y:420,r:90,label:'4AM COFFEE',act:()=>openCard('coffee')},
-  {id:'shop',x:1390,y:760,r:105,label:'BEHBEH SHOP',act:()=>state.quest===Q.CAR?say('LAURA',['Car first. Then we can begin the rest of your administrative collapse.']):openCard('shop')},
-  {id:'tap',x:1320,y:448,r:110,label:'TAP & VINE',act:()=>[Q.CAR,Q.MILK].includes(state.quest)?say('LAURA',['Milk first.','Rick: The Tap is basically hydration.','Laura: It really is not.']):openCard('tap')},
-  {id:'turkish',x:842,y:775,r:110,label:'THE TURKISH',act:()=>[Q.TURKISH,Q.FATS,Q.DONE].includes(state.quest)?openCard('turkish'):say('RICK',['Food?','Laura: We are pretending to have a plan.','Rick: Food is a plan.'])},
-  {id:'kendal',x:606,y:268,r:82,label:'KENDAL CALLING',act:()=>openCard('kendal')},
+  {id:'coffee',x:245,y:474,r:95,label:'4AM COFFEE',act:()=>openCard('coffee')},
+  {id:'shop',x:1390,y:610,r:105,label:'BEHBEH SHOP',act:()=>state.quest===Q.CAR?say('LAURA',['Car first. Then we can begin the rest of your administrative collapse.']):openCard('shop')},
+  {id:'tap',x:1320,y:476,r:110,label:'TAP & VINE',act:()=>[Q.CAR,Q.MILK].includes(state.quest)?say('LAURA',['Milk first.','Rick: The Tap is basically hydration.','Laura: It really is not.']):openCard('tap')},
+  {id:'turkish',x:842,y:664,r:110,label:'THE TURKISH',act:()=>[Q.TURKISH,Q.FATS,Q.DONE].includes(state.quest)?openCard('turkish'):say('RICK',['Food?','Laura: We are pretending to have a plan.','Rick: Food is a plan.'])},
+  {id:'kendal',x:606,y:318,r:90,label:'KENDAL CALLING',act:()=>openCard('kendal')},
   {id:'bench',x:960,y:406,r:68,label:'SUSPICIOUS BENCH',act:()=>say(state.leader.toUpperCase(),state.leader==='rick'?['Sit down for a minute?','Laura: Every time you say “a minute” we lose forty-five minutes.']:['I am not sitting there.','Rick: Why?','Laura: Look at it. It knows what it did.'])}
  ];
  if(state.quest===Q.GLASSES_OUTSIDE||state.quest===Q.DENISE_RETURN){
@@ -439,7 +439,16 @@ function update(dt){
  const m=Math.hypot(mx,my);if(m>1){mx/=m;my/=m}
  const speed=230,blend=1-Math.exp(-(mx||my?10.5:13)*dt);player.vx=lerp(player.vx,mx*speed,blend);player.vy=lerp(player.vy,my*speed,blend);
  if(Math.abs(player.vx)+Math.abs(player.vy)<1.5)player.vx=player.vy=0;
- const nx=clamp(player.x+player.vx*dt,40,W-40),ny=clamp(player.y+player.vy*dt,510,H-38);player.x=nx;player.y=ny;
+ const nx=clamp(player.x+player.vx*dt,40,W-40),ny=clamp(player.y+player.vy*dt,185,H-38);
+ const blocks=[
+  {x:18,y:100,w:440,h:350},
+  {x:1070,y:70,w:505,h:380},
+  {x:1215,y:620,w:360,h:260},
+  {x:665,y:678,w:355,h:205}
+ ];
+ const blocked=(x,y)=>blocks.some(b=>x>b.x-22&&x<b.x+b.w+22&&y>b.y-22&&y<b.y+b.h+22);
+ if(!blocked(nx,player.y))player.x=nx;
+ if(!blocked(player.x,ny))player.y=ny;
  if(mx||my){player.dirX=mx;player.dirY=my;player.walk+=dt*7}else player.walk=0;
  // follower and dog spring
  const trailX=player.x-player.dirX*38-24,trailY=player.y-player.dirY*38+8;follower.x=lerp(follower.x,trailX,1-Math.exp(-5*dt));follower.y=lerp(follower.y,trailY,1-Math.exp(-5*dt));
