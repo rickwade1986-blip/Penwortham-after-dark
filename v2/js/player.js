@@ -35,5 +35,6 @@ PAD2.PlayerController=class{
     this.sprite.setTint(this.hero==='rick'?0x2f6448:0xb94882);
     document.getElementById('hero-name').textContent=this.hero.toUpperCase();
     document.getElementById('hero-name').style.color=this.hero==='rick'?'#b7ff39':'#ff4fa3';
+    PAD2.abilities?.refreshButton();
   }
 };
