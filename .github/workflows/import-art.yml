@@ -1,0 +1,88 @@
+name: Import premium character art
+
+on:
+  push:
+    paths:
+      - ".github/workflows/import-art.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  import:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install pillow
+      - name: Download generated character sheets
+        run: |
+          mkdir -p .tmp-art
+          curl -L --fail "https://rick-laura-vs-fats.floot.app/_cdn/static/e6c0e211-36a7-4c53-9a89-67dec55fe05b.png" -o .tmp-art/rick.png
+          curl -L --fail "https://rick-laura-vs-fats.floot.app/_cdn/static/20411b3e-57f2-4645-85a7-2f275f4ad427.png" -o .tmp-art/laura.png
+          curl -L --fail "https://rick-laura-vs-fats.floot.app/_cdn/static/c4d49fe6-2e38-453a-8b74-ee20cdb81fab.png" -o .tmp-art/fats.png
+          curl -L --fail "https://rick-laura-vs-fats.floot.app/_cdn/static/8c86eb9a-5a2e-4358-b77a-2bc0efc7f3e3.png" -o .tmp-art/dad.png
+          file .tmp-art/*.png
+      - name: Chroma-key and split sheets
+        run: |
+          python - <<'PY'
+          from PIL import Image
+          from pathlib import Path
+          import math
+
+          order=["down0","down1","up0","up1","right0","right1","attack0","attack1"]
+          root=Path("assets/characters")
+          root.mkdir(parents=True,exist_ok=True)
+
+          def clean_sheet(name):
+              img=Image.open(f".tmp-art/{name}.png").convert("RGBA")
+              px=img.load()
+              # remove strong blue/chroma backgrounds while preserving clothing/eyes
+              for y in range(img.height):
+                  for x in range(img.width):
+                      r,g,b,a=px[x,y]
+                      if a < 15:
+                          continue
+                      if b > 150 and b > r*1.45 and b > g*1.18 and (b-r)>55:
+                          px[x,y]=(r,g,b,0)
+              fw,fh=img.width//4,img.height//2
+              outdir=root/name
+              outdir.mkdir(exist_ok=True)
+              for i,label in enumerate(order):
+                  col,row=i%4,i//4
+                  frame=img.crop((col*fw,row*fh,(col+1)*fw,(row+1)*fh))
+                  alpha=frame.getchannel("A")
+                  bbox=alpha.getbbox()
+                  if bbox:
+                      frame=frame.crop(bbox)
+                  # consistent game canvas, preserve aspect ratio
+                  canvas=Image.new("RGBA",(256,320),(0,0,0,0))
+                  maxw,maxh=205,290
+                  scale=min(maxw/max(1,frame.width),maxh/max(1,frame.height))
+                  size=(max(1,round(frame.width*scale)),max(1,round(frame.height*scale)))
+                  frame=frame.resize(size,Image.Resampling.LANCZOS)
+                  x=(256-size[0])//2
+                  y=320-size[1]-8
+                  canvas.alpha_composite(frame,(x,y))
+                  canvas.save(outdir/f"{label}.png",optimize=True)
+              # thumbnail/portrait from down0
+              p=Image.open(outdir/"down0.png")
+              p.save(outdir/"portrait.png",optimize=True)
+
+          for n in ["rick","laura","fats","dad"]:
+              clean_sheet(n)
+          PY
+      - name: Commit imported art
+        run: |
+          git config user.name "Penwortham After Dark Bot"
+          git config user.email "actions@github.com"
+          git add assets/characters
+          if git diff --cached --quiet; then
+            echo "No art changes"
+          else
+            git commit -m "Import premium character sprites"
+            git push
+          fi
