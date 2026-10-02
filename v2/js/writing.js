@@ -1,10 +1,8 @@
 PAD2.writing={
-  intro:{
-    rick:[
-      "It's Rick from the weird friends app btw.",
-      "Laura: I gathered that, yeah."
-    ]
-  },
+  intro:[
+    "It's Rick from the weird friends app btw.",
+    "Laura: I gathered that, yeah."
+  ],
 
   car:{
     rick:[
@@ -44,11 +42,12 @@ PAD2.writing={
 
   will:{
     rick:[
-      "When you're in the Tap, you're a pub.",
-      "Rick: That's still not a sentence, Will."
+      "Will: When you're in the Tap, you're a pub.",
+      "Rick: That's still not a sentence, Will.",
+      "Will: It doesn't need to be."
     ],
     laura:[
-      "When you're in the Tap, you're a pub.",
+      "Will: When you're in the Tap, you're a pub.",
       "Laura: Will, what the fuck does that mean?",
       'Will: Exactly.'
     ]
@@ -56,12 +55,12 @@ PAD2.writing={
 
   denise:{
     rick:[
-      'Kendal again next year then?',
+      'Denise: Kendal again next year then?',
       "Rick: Apparently I've already agreed.",
-      'Denise: You have now.'
+      "Denise: You have now."
     ],
     laura:[
-      'Kendal again next year then?',
+      'Denise: Kendal again next year then?',
       'Laura: Obviously.',
       "Denise: Good. Wasn't asking."
     ]
@@ -69,16 +68,61 @@ PAD2.writing={
 
   dad:{
     rick:[
-      'You lost the car again?',
-      "Rick: Temporarily misplaced.",
+      'Dad: You lost the car again?',
+      'Rick: Temporarily misplaced.',
       "Dad: That's not a personality trait, son."
     ],
     laura:[
-      'You keeping him organised then?',
+      'Dad: You keeping him organised then?',
       "Laura: I've tried systems.",
       'Dad: Brave.'
     ]
   },
+
+  kendal:[
+    'Denise: I remember this bit.',
+    'Laura: No you do not.',
+    'Denise: Correct. That is why it was good.'
+  ],
+
+  andrew:[
+    'Got a beat for you.',
+    'Rick: Why are you called Prince Andrew 3000?',
+    'Move on.'
+  ],
+
+  turkish:{
+    rick:[
+      'Rick: We ordered for two.',
+      "Laura: There's enough lamb here to destabilise a small economy.",
+      'Rick: So... leftovers?',
+      'Laura: Behave.'
+    ],
+    laura:[
+      "Laura: I said we'd order sensibly.",
+      'Rick: We have.',
+      'Laura: There are six plates of bread alone.'
+    ]
+  },
+
+  turkishBullshit:[
+    'Rick: This is exactly what we ordered.',
+    'WAITER: It absolutely is not.',
+    'Rick: See? Agreement.'
+  ],
+
+  turkishCallBullshit:[
+    'Laura: That is not two portions.',
+    'WAITER: Turkish two portions.',
+    'Laura: Ah. Fair.'
+  ],
+
+  fatsPhone:[
+    'FATS: First pub. No roast.',
+    'FATS: Second pub. Twenty-minute wait.',
+    'Rick: Oh no.',
+    'Laura: He is going to make this everyone else’s problem.'
+  ],
 
   fatsIntro:[
     "First pub: no roast.",
