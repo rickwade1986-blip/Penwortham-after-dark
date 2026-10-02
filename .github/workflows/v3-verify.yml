@@ -1,0 +1,77 @@
+name: Verify V3
+
+on:
+  push:
+    branches: ["v3-rebuild"]
+    paths:
+      - "v3/**"
+      - ".github/workflows/v3-verify.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Syntax check
+        run: node --check v3/game.js
+
+      - name: Verify generated art exists
+        run: |
+          test -f v3/assets/characters/rick-down-0.png
+          test -f v3/assets/characters/laura-down-0.png
+          test -f v3/assets/characters/will.png
+          test -f v3/assets/characters/denise.png
+          test -f v3/assets/characters/dad.png
+          test -f v3/assets/characters/fats.png
+          test -f v3/assets/rooms/street.png
+          test -f v3/assets/rooms/tap.png
+          test -f v3/assets/rooms/turkish.png
+
+      - name: Start server
+        run: |
+          python3 -m http.server 8000 >/tmp/pad-v3-http.log 2>&1 &
+          sleep 2
+
+      - name: Smoke each important scene
+        run: |
+          CHROME="$(which google-chrome || which chromium || which chromium-browser)"
+          testpage () {
+            NAME="$1"
+            URL="$2"
+            "$CHROME" --headless=new --no-sandbox --disable-gpu --virtual-time-budget=7000 --dump-dom "$URL" > "$NAME.html"
+            grep -q 'data-game-ready="true"' "$NAME.html"
+            grep -q '<canvas' "$NAME.html"
+          }
+
+          testpage street "http://127.0.0.1:8000/v3/index.html?reset=1&room=street&quest=CAR"
+          testpage shop "http://127.0.0.1:8000/v3/index.html?room=shop&quest=MILK"
+          testpage tap "http://127.0.0.1:8000/v3/index.html?room=tap&quest=WILL"
+          testpage turkish "http://127.0.0.1:8000/v3/index.html?room=turkish&quest=TURKISH"
+          testpage fats "http://127.0.0.1:8000/v3/index.html?room=fats&quest=FATS"
+
+          grep -q "Find Rick's car" street.html
+          grep -q "Behbeh, we need milk too" shop.html
+          grep -q "Find Will" tap.html
+          grep -q "Get some food at The Turkish" turkish.html
+          grep -q "FATS has had a roast incident" fats.html
+
+      - name: Capture V3 screenshots
+        run: |
+          CHROME="$(which google-chrome || which chromium || which chromium-browser)"
+          "$CHROME" --headless=new --no-sandbox --disable-gpu --window-size=1800,828 --virtual-time-budget=6500 --screenshot=v3-street.png "http://127.0.0.1:8000/v3/index.html?reset=1&room=street&quest=CAR"
+          "$CHROME" --headless=new --no-sandbox --disable-gpu --window-size=1800,828 --virtual-time-budget=6500 --screenshot=v3-tap.png "http://127.0.0.1:8000/v3/index.html?room=tap&quest=WILL"
+          "$CHROME" --headless=new --no-sandbox --disable-gpu --window-size=1800,828 --virtual-time-budget=6500 --screenshot=v3-turkish.png "http://127.0.0.1:8000/v3/index.html?room=turkish&quest=TURKISH"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: v3-screenshots
+          path: |
+            v3-street.png
+            v3-tap.png
+            v3-turkish.png
+          retention-days: 3
