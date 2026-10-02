@@ -274,7 +274,11 @@
     showToast(name === 'tap' ? 'TAP & VINE' : name === 'shop' ? 'BEHBEH SHOP' : name === 'turkish' ? 'THE TURKISH' : name === 'kendal' ? 'KENDAL CALLING' : 'PENWORTHAM');
   }
 
-  function addHotspot(o) { hotspots.push(o); return o; }
+  function addHotspot(o) {
+    hotspots.push(o);
+    document.body.dataset.hotspots = hotspots.map(h => h.id).join(',');
+    return o;
+  }
   function addNpc(o) { npcs.push(o); return o; }
 
   const lines = {
@@ -1136,6 +1140,23 @@
       document.body.dataset.gameReady='true';
       document.body.dataset.scene=state.scene;
       document.body.dataset.quest=state.quest;
+
+      // CI-only progression check: reproduce the exact car -> glasses transition
+      // that softlocked on iPhone and prove the glasses hotspot exists immediately.
+      if (params.get('autotest') === 'car-glasses') {
+        state.quest = Q.CAR;
+        state.flags.car = false;
+        state.flags.glasses = false;
+        buildScene();
+        const car = hotspots.find(h => h.id === 'car');
+        if (car && car.act) car.act();
+        document.body.dataset.autoTest = state.quest + ':' + (document.body.dataset.hotspots || '');
+        if (dialogue) {
+          dialogue = null;
+          ui.dialogue.classList.add('hidden');
+        }
+      }
+
       requestAnimationFrame(loop);
     } catch (err) {
       document.body.dataset.gameError=String(err&&err.message||err);
