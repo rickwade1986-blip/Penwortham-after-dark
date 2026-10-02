@@ -167,6 +167,13 @@
     document.body.dataset.scene = state.scene;
   }
 
+  function advanceQuest(nextQuest, flagName) {
+    if (flagName) state.flags[flagName] = true;
+    state.quest = nextQuest;
+    buildScene();
+    save();
+  }
+
   function currentSceneName() {
     return Object.keys(SCENES).find((k) => SCENES[k] === room) || state.scene || 'town';
   }
@@ -311,9 +318,7 @@
         id:'car', x:255, y:690, r:115, label:'RICK’S CAR',
         act:() => {
           if (state.quest === Q.CAR) {
-            state.flags.car = true;
-            state.quest = Q.GLASSES;
-            save();
+            advanceQuest(Q.GLASSES, 'car');
             say(state.hero.toUpperCase(), lines.car[state.hero], () => burst(255,690,'#b6ff3b',18));
           } else say('RICK', ['Yep. Still the car. Miraculous.']);
         }
@@ -321,12 +326,10 @@
 
       if (state.quest !== Q.CAR || state.flags.glasses) {
         addHotspot({
-          id:'glasses', x:430, y:715, r:75, label:'GLASSES',
+          id:'glasses', x:430, y:715, r:125, label:'GLASSES',
           act:() => {
             if (state.quest === Q.GLASSES) {
-              state.flags.glasses = true;
-              state.quest = Q.MILK;
-              save();
+              advanceQuest(Q.MILK, 'glasses');
               say(state.hero.toUpperCase(), lines.glasses[state.hero], () => burst(430,715,'#eaf6ff',18));
             } else say('LAURA', ['We have the glasses. Try not to invent a second pair to lose.']);
           }
@@ -399,9 +402,7 @@
         id:'milk', x:240, y:430, r:120, label:'MILK FRIDGE',
         act:() => {
           if (state.quest === Q.MILK) {
-            state.flags.milk = true;
-            state.quest = Q.WILL;
-            save();
+            advanceQuest(Q.WILL, 'milk');
             say(state.hero.toUpperCase(), lines.milk[state.hero], () => burst(240,430,'#7fc7d7',18));
           } else say('LAURA', ['We already have milk.', 'Rick: Worth checking.', 'Laura: No.']);
         }
@@ -645,7 +646,14 @@
     if (advanceDialogue()) return;
     if (boss.active) return;
     const n = nearestHotspot();
-    if (n && n.act) n.act();
+    if (n && n.act) {
+      n.act();
+      return;
+    }
+    if (currentSceneName() === 'town' && state.quest === Q.GLASSES && Math.hypot(430-player.x,715-player.y) < 175) {
+      advanceQuest(Q.MILK, 'glasses');
+      say(state.hero.toUpperCase(), lines.glasses[state.hero], () => burst(430,715,'#eaf6ff',18));
+    }
   }
 
   function doSwap() {
