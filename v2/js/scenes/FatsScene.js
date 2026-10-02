@@ -9,7 +9,7 @@ PAD2.FatsScene=class extends PAD2.AdventureBase{
     this.cooldown=1.0;
 
     this.fats=this.physics.add.sprite(800,420,'npc-fats').setScale(.50).setDepth(85);
-    this.fats.body.setImmovable(false);
+    this.fats.body.setImmovable(false).setSize(105,78,true);
     this.fats.setCollideWorldBounds(true);
 
     this.addInteractable({
