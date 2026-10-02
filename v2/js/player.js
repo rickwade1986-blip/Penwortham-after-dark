@@ -32,7 +32,7 @@ PAD2.PlayerController=class{
   swap(){
     this.hero=this.hero==='rick'?'laura':'rick';
     PAD2.state.data.hero=this.hero;PAD2.state.save();
-    this.sprite.setFillStyle(this.hero==='rick'?0x2f6448:0xb94882);
+    this.sprite.setTint(this.hero==='rick'?0x2f6448:0xb94882);
     document.getElementById('hero-name').textContent=this.hero.toUpperCase();
     document.getElementById('hero-name').style.color=this.hero==='rick'?'#b7ff39':'#ff4fa3';
   }
