@@ -49,9 +49,9 @@ jobs:
           }
 
           testpage town "http://127.0.0.1:8000/v4/index.html?test=1&reset=1&scene=town&quest=CAR"
-          testpage car_glasses "http://127.0.0.1:8000/v4/index.html?test=1&reset=1&scene=town&quest=CAR&autotest=car-glasses"
-          grep -q 'data-auto-test="GLASSES:' car_glasses.html
-          grep -q 'glasses' car_glasses.html
+          testpage car_milk "http://127.0.0.1:8000/v4/index.html?test=1&reset=1&scene=town&quest=CAR&autotest=car-milk"
+          grep -q 'data-auto-test="MILK:' car_milk.html
+          grep -q 'shopDoor' car_milk.html
           testpage shop "http://127.0.0.1:8000/v4/index.html?test=1&scene=shop&quest=MILK"
           testpage tap "http://127.0.0.1:8000/v4/index.html?test=1&scene=tap&quest=WILL"
           testpage turkish "http://127.0.0.1:8000/v4/index.html?test=1&scene=turkish&quest=TURKISH"
