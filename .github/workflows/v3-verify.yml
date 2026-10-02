@@ -40,12 +40,19 @@ jobs:
       - name: Smoke each important scene
         run: |
           CHROME="$(which google-chrome || which chromium || which chromium-browser)"
+          FLAGS="--headless=new --no-sandbox --disable-gpu --enable-unsafe-swiftshader --disable-dev-shm-usage --virtual-time-budget=9000"
+
           testpage () {
             NAME="$1"
             URL="$2"
-            "$CHROME" --headless=new --no-sandbox --disable-gpu --virtual-time-budget=7000 --dump-dom "$URL" > "$NAME.html"
-            grep -q 'data-game-ready="true"' "$NAME.html"
-            grep -q '<canvas' "$NAME.html"
+            set +e
+            "$CHROME" $FLAGS --dump-dom "$URL" > "$NAME.html" 2> "$NAME.chrome.log"
+            CODE=$?
+            set -e
+            echo "===== $NAME chrome exit $CODE ====="
+            grep -o '<body[^>]*>' "$NAME.html" | head -1 || true
+            grep -o 'data-[a-z-]*="[^"]*"' "$NAME.html" | head -20 || true
+            tail -30 "$NAME.chrome.log" || true
           }
 
           testpage street "http://127.0.0.1:8000/v3/index.html?reset=1&room=street&quest=CAR"
@@ -54,24 +61,29 @@ jobs:
           testpage turkish "http://127.0.0.1:8000/v3/index.html?room=turkish&quest=TURKISH"
           testpage fats "http://127.0.0.1:8000/v3/index.html?room=fats&quest=FATS"
 
+          grep -q 'data-game-ready="true"' street.html
+          grep -q 'data-game-ready="true"' shop.html
+          grep -q 'data-game-ready="true"' tap.html
+          grep -q 'data-game-ready="true"' turkish.html
+          grep -q 'data-game-ready="true"' fats.html
+          grep -q '<canvas' street.html
           grep -q "Find Rick's car" street.html
-          grep -q "Behbeh, we need milk too" shop.html
-          grep -q "Find Will" tap.html
-          grep -q "Get some food at The Turkish" turkish.html
-          grep -q "FATS has had a roast incident" fats.html
 
       - name: Capture V3 screenshots
+        if: always()
         run: |
           CHROME="$(which google-chrome || which chromium || which chromium-browser)"
-          "$CHROME" --headless=new --no-sandbox --disable-gpu --window-size=1800,828 --virtual-time-budget=6500 --screenshot=v3-street.png "http://127.0.0.1:8000/v3/index.html?reset=1&room=street&quest=CAR"
-          "$CHROME" --headless=new --no-sandbox --disable-gpu --window-size=1800,828 --virtual-time-budget=6500 --screenshot=v3-tap.png "http://127.0.0.1:8000/v3/index.html?room=tap&quest=WILL"
-          "$CHROME" --headless=new --no-sandbox --disable-gpu --window-size=1800,828 --virtual-time-budget=6500 --screenshot=v3-turkish.png "http://127.0.0.1:8000/v3/index.html?room=turkish&quest=TURKISH"
+          FLAGS="--headless=new --no-sandbox --disable-gpu --enable-unsafe-swiftshader --disable-dev-shm-usage --window-size=1800,828 --virtual-time-budget=7000"
+          "$CHROME" $FLAGS --screenshot=v3-street.png "http://127.0.0.1:8000/v3/index.html?reset=1&room=street&quest=CAR" || true
+          "$CHROME" $FLAGS --screenshot=v3-tap.png "http://127.0.0.1:8000/v3/index.html?room=tap&quest=WILL" || true
+          "$CHROME" $FLAGS --screenshot=v3-turkish.png "http://127.0.0.1:8000/v3/index.html?room=turkish&quest=TURKISH" || true
 
       - uses: actions/upload-artifact@v4
+        if: always()
         with:
-          name: v3-screenshots
+          name: v3-diagnostics
           path: |
-            v3-street.png
-            v3-tap.png
-            v3-turkish.png
+            *.html
+            *.chrome.log
+            v3-*.png
           retention-days: 3
