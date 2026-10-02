@@ -4,11 +4,11 @@ PAD2.TapScene=class extends PAD2.AdventureBase{
     this.createBase('room-tap',data.spawn||{x:800,y:710},'Tap & Vine');
 
     this.will=this.physics.add.sprite(650,390,'npc-will').setScale(.48).setDepth(80);
-    this.will.body.setImmovable(true);
+    this.will.body.setImmovable(true).setSize(105,74,true);
     this.denise=this.physics.add.sprite(920,405,'npc-denise').setScale(.50).setDepth(80);
-    this.denise.body.setImmovable(true);
+    this.denise.body.setImmovable(true).setSize(112,78,true);
     this.dad=this.physics.add.sprite(1240,650,'npc-dad').setScale(.43).setDepth(80);
-    this.dad.body.setImmovable(true);
+    this.dad.body.setImmovable(true).setSize(125,82,true);
 
     this.physics.add.collider(this.player,this.will);
     this.physics.add.collider(this.player,this.denise);
