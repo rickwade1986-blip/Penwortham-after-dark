@@ -17,7 +17,10 @@ jobs:
         run: |
           node --check v2/js/config.js
           node --check v2/js/state.js
+          node --check v2/js/characters.js
+          node --check v2/js/writing.js
           node --check v2/js/dialogue.js
+          node --check v2/js/abilities.js
           node --check v2/js/player.js
           node --check v2/js/scenes/BootScene.js
           node --check v2/js/scenes/TestRoomScene.js
@@ -30,7 +33,13 @@ jobs:
       - name: Browser smoke test
         run: |
           CHROME="$(which google-chrome || which chromium || which chromium-browser)"
-          "$CHROME" --headless=new --no-sandbox --disable-gpu --virtual-time-budget=4500 --dump-dom             http://127.0.0.1:8000/v2/index.html > rendered.html
+          "$CHROME" --headless=new --no-sandbox --disable-gpu --virtual-time-budget=7000 --dump-dom             http://127.0.0.1:8000/v2/index.html > rendered.html
+          echo "---- rendered state ----"
+          grep -o 'data-v2-[^ >]*' rendered.html || true
+          grep -o '<canvas[^>]*>' rendered.html | head -1 || true
+          grep -o 'FOUNDATION TEST' rendered.html | head -1 || true
+          echo "---- top of rendered DOM ----"
+          head -80 rendered.html
           grep -q 'data-v2-ready="true"' rendered.html
           grep -q '<canvas' rendered.html
           grep -q 'FOUNDATION TEST' rendered.html
