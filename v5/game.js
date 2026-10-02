@@ -93,7 +93,7 @@ function fitCamera(){
  // wider than the previous build: the whole town should read as a place, not a close-up.
  scale=Math.min(innerWidth/W,innerHeight/720);
  const visibleH=innerHeight/scale;
- camY=clamp(player.y-visibleH*.66,0,Math.max(0,H-visibleH));
+ camY=clamp(player.y-visibleH*.78,0,Math.max(0,H-visibleH));
 }
 
 function rounded(c,x,y,w,h,r,fill,stroke,lw=1){
@@ -169,11 +169,19 @@ function drawWorld(c){
  // buildings
  building(c,28,115,420,332,'#4c2929','#a45cff','#efe9e4','4AM COFFEE',3);
  building(c,1080,78,485,372,'#4a2928','#c49a56','#e5ba66','TAP & VINE',3);
- building(c,1224,628,340,242,'#313942','#e8bfd0','#f4eef2','BEHBEH SHOP',2);
- building(c,676,685,332,184,'#193638','#d3a453','#efc86d','THE TURKISH',2);
- // cafe details
+ building(c,1224,592,340,242,'#313942','#e8bfd0','#f4eef2','BEHBEH SHOP',2);
+ building(c,676,642,332,184,'#193638','#d3a453','#efc86d','THE TURKISH',2);
+ // cafe / pub details
  rounded(c,70,388,137,58,7,'#17191f','#ebe2d8',3);text(c,'GOOD COFFEE',138,407,14,'#f0ece7','center');text(c,'BAD DECISIONS',138,432,14,'#ff4fa3','center');
  drawFlowerBasket(c,1115,112,.8);drawFlowerBasket(c,1502,112,.9);drawFlowerBasket(c,1192,420,.8);drawFlowerBasket(c,1446,419,.8);
+ // outdoor tables: little human-scale detail instead of giant empty rectangles
+ for(const [tx,ty] of [[335,438],[1218,424],[1472,423]]){
+   c.fillStyle='#6d4530';c.beginPath();c.ellipse(tx,ty,34,15,0,0,Math.PI*2);c.fill();c.strokeStyle='#161419';c.lineWidth=4;c.stroke();
+   c.fillStyle='#d08f45';c.beginPath();c.arc(tx-8,ty-4,5,0,Math.PI*2);c.fill();
+   c.fillStyle='#34383b';c.fillRect(tx-41,ty+13,18,8);c.fillRect(tx+23,ty+13,18,8);
+ }
+ for(const [px,py] of [[454,435],[1040,435],[1590,580],[650,640]]){c.fillStyle='#2d5238';c.beginPath();c.arc(px,py,18,0,Math.PI*2);c.fill();c.fillStyle='#74452e';c.fillRect(px-11,py+10,22,15)}
+
 
  // park
  c.fillStyle='#1d4a31';c.beginPath();c.roundRect(470,145,610,335,80);c.fill();c.strokeStyle='#274b35';c.lineWidth=10;c.stroke();
@@ -242,9 +250,9 @@ function hotspotList(){
  const h=[
   {id:'car',x:245,y:735,r:95,label:'RICK’S CAR',act:carAct},
   {id:'coffee',x:245,y:474,r:95,label:'4AM COFFEE',act:()=>openCard('coffee')},
-  {id:'shop',x:1390,y:610,r:105,label:'BEHBEH SHOP',act:()=>state.quest===Q.CAR?say('LAURA',['Car first. Then we can begin the rest of your administrative collapse.']):openCard('shop')},
+  {id:'shop',x:1390,y:575,r:105,label:'BEHBEH SHOP',act:()=>state.quest===Q.CAR?say('LAURA',['Car first. Then we can begin the rest of your administrative collapse.']):openCard('shop')},
   {id:'tap',x:1320,y:476,r:110,label:'TAP & VINE',act:()=>[Q.CAR,Q.MILK].includes(state.quest)?say('LAURA',['Milk first.','Rick: The Tap is basically hydration.','Laura: It really is not.']):openCard('tap')},
-  {id:'turkish',x:842,y:664,r:110,label:'THE TURKISH',act:()=>[Q.TURKISH,Q.FATS,Q.DONE].includes(state.quest)?openCard('turkish'):say('RICK',['Food?','Laura: We are pretending to have a plan.','Rick: Food is a plan.'])},
+  {id:'turkish',x:842,y:625,r:110,label:'THE TURKISH',act:()=>[Q.TURKISH,Q.FATS,Q.DONE].includes(state.quest)?openCard('turkish'):say('RICK',['Food?','Laura: We are pretending to have a plan.','Rick: Food is a plan.'])},
   {id:'kendal',x:606,y:318,r:90,label:'KENDAL CALLING',act:()=>openCard('kendal')},
   {id:'bench',x:960,y:406,r:68,label:'SUSPICIOUS BENCH',act:()=>say(state.leader.toUpperCase(),state.leader==='rick'?['Sit down for a minute?','Laura: Every time you say “a minute” we lose forty-five minutes.']:['I am not sitting there.','Rick: Why?','Laura: Look at it. It knows what it did.'])}
  ];
@@ -428,9 +436,9 @@ function drawWorldScene(){
  drawBoss(ctx);drawProjectiles(ctx);drawParticles(ctx);
  // party, both always visible
  const lp=worldToScreen(player.x,player.y),fp=worldToScreen(follower.x,follower.y),dp=worldToScreen(dog.x,dog.y);const bob=Math.sin(player.walk*Math.PI)*2.5;
- if(state.leader==='rick'){avatarLaura(ctx,fp.x,fp.y,0,1,scale*.86,.9);avatarRick(ctx,lp.x,lp.y+bob*scale,player.dirX,player.dirY,scale,1)}
- else{avatarRick(ctx,fp.x,fp.y,0,1,scale*.86,.9);avatarLaura(ctx,lp.x,lp.y+bob*scale,player.dirX,player.dirY,scale,1)}
- drawDog(ctx,dp.x,dp.y,scale*.75);
+ if(state.leader==='rick'){avatarLaura(ctx,fp.x,fp.y,0,1,scale*1.05,.92);avatarRick(ctx,lp.x,lp.y+bob*scale,player.dirX,player.dirY,scale*1.28,1)}
+ else{avatarRick(ctx,fp.x,fp.y,0,1,scale*1.05,.92);avatarLaura(ctx,lp.x,lp.y+bob*scale,player.dirX,player.dirY,scale*1.28,1)}
+ drawDog(ctx,dp.x,dp.y,scale*.92);
 }
 
 function update(dt){
@@ -443,8 +451,8 @@ function update(dt){
  const blocks=[
   {x:18,y:100,w:440,h:350},
   {x:1070,y:70,w:505,h:380},
-  {x:1215,y:620,w:360,h:260},
-  {x:665,y:678,w:355,h:205}
+  {x:1215,y:584,w:360,h:260},
+  {x:665,y:635,w:355,h:205}
  ];
  const blocked=(x,y)=>blocks.some(b=>x>b.x-22&&x<b.x+b.w+22&&y>b.y-22&&y<b.y+b.h+22);
  if(!blocked(nx,player.y))player.x=nx;
