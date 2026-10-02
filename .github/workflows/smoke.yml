@@ -25,6 +25,8 @@ jobs:
           grep -q "<canvas" rendered.html
           grep -q "PENWORTHAM" rendered.html
           grep -q "OBJECTIVE" rendered.html
+          grep -q 'data-game-ready="true"' rendered.html
+          grep -q 'data-premium-sprites="true"' rendered.html
       - name: Capture smoke screenshot
         run: |
           CHROME="$(which google-chrome || which chromium || which chromium-browser)"
