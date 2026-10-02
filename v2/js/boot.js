@@ -72,6 +72,7 @@ document.getElementById('ability').addEventListener('pointerdown',e=>{
   if(PAD2.runtime.pausedForDialogue)return;
   PAD2.runtime.activeScene?.ability?.();
 });
+PAD2.abilities.refreshButton();
 
 const phaser=new Phaser.Game({
   type:Phaser.CANVAS,
