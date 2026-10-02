@@ -1560,6 +1560,38 @@
       }
 
 
+      if (params.get('autotest') === 'milk-till') {
+        state.scene = 'shop';
+        room = SCENES.shop;
+        player.x = 240; player.y = 430;
+        state.quest = Q.MILK;
+        state.flags.milk = false;
+        state.flags.milkHeld = false;
+        buildScene();
+
+        const milk = hotspots.find(h => h.id === 'milk');
+        milk?.act?.();
+        drainDialogueForTest();
+
+        const till = hotspots.find(h => h.id === 'till');
+        state.hero = 'rick';
+        till?.ability?.();
+        drainDialogueForTest();
+
+        document.body.dataset.milkTest =
+          state.quest + ':milk=' + String(!!state.flags.milk) +
+          ':held=' + String(!!state.flags.milkHeld);
+      }
+
+      if (params.get('autotest') === 'fats-runner') {
+        state.scene = 'town';
+        room = SCENES.town;
+        state.quest = Q.FATS;
+        buildScene();
+        document.body.dataset.fatsRunnerTest =
+          String(!!fatsRunner) + ':hotspot=' + String(!!hotspots.find(h => h.id === 'fats'));
+      }
+
       if (params.get('autotest') === 'denise-glasses') {
         state.scene = 'tap';
         room = SCENES.tap;
