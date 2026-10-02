@@ -1,5 +1,6 @@
 window.PAD2=window.PAD2||{};
 PAD2.config={
+  buildTag:'v2-pixel-2026-10-02a',
   storageKey:'penwortham-after-dark-v2-playable-1',
   world:{width:1600,height:1000},
   player:{maxSpeed:230,accel:10,decel:12,deadzone:.14},
