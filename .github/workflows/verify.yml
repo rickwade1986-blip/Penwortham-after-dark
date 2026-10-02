@@ -1,0 +1,29 @@
+name: Verify game
+
+on:
+  push:
+    branches: ["main"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Syntax check JavaScript
+        run: |
+          node --check src/world.js
+          node --check src/art.js
+          node --check game.js
+      - name: Check required files
+        run: |
+          test -f index.html
+          test -f style.css
+          test -f manifest.webmanifest
+          grep -q "Penwortham After Dark" index.html
+          grep -q "PAD_WORLD" src/world.js
+          grep -q "PAD_ART" src/art.js
+          grep -q "Phaser.Game" game.js
