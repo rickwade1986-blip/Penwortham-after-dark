@@ -85,7 +85,7 @@ const game=new Phaser.Game({
   backgroundColor:'#101319',
   scale:{mode:Phaser.Scale.RESIZE,width:innerWidth,height:innerHeight},
   physics:{default:'arcade',arcade:{gravity:{x:0,y:0},debug:false}},
-  render:{antialias:true,roundPixels:true},
+  render:{antialias:false,pixelArt:true,roundPixels:true},
   scene:[
     PAD2.BootScene,
     PAD2.StreetScene,
