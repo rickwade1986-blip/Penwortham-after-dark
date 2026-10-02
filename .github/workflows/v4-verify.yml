@@ -59,6 +59,12 @@ jobs:
 
           testpage denise_task "http://127.0.0.1:8000/v4/index.html?test=1&reset=1&scene=tap&quest=DENISE&autotest=denise-glasses"
           grep -q 'data-denise-test="TURKISH:wine=true:glasses=3"' denise_task.html
+
+          testpage milk_till "http://127.0.0.1:8000/v4/index.html?test=1&reset=1&scene=shop&quest=MILK&autotest=milk-till"
+          grep -q 'data-milk-test="WILL:milk=true:held=false"' milk_till.html
+
+          testpage fats_runner "http://127.0.0.1:8000/v4/index.html?test=1&reset=1&scene=town&quest=FATS&autotest=fats-runner"
+          grep -q 'data-fats-runner-test="true:hotspot=true"' fats_runner.html
           testpage shop "http://127.0.0.1:8000/v4/index.html?test=1&scene=shop&quest=MILK"
           testpage tap "http://127.0.0.1:8000/v4/index.html?test=1&scene=tap&quest=WILL"
           testpage turkish "http://127.0.0.1:8000/v4/index.html?test=1&scene=turkish&quest=TURKISH"
