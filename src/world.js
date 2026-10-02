@@ -23,7 +23,7 @@ window.PAD_WORLD = {
         {x:150,y:1100,w:300,h:175,to:'shop',spawn:{x:480,y:420},label:'CORNER SHOP'},
         {x:650,y:1110,w:300,h:180,to:'sauna',spawn:{x:480,y:420},label:'SAUNA'},
         {x:1110,y:1110,w:360,h:180,to:'travel',spawn:{x:480,y:420},label:'WEALTHY LITTLE PIGS'},
-        {x:1710,y:650,w:300,h:180,to:'tap',spawn:{x:480,y:420},label:'TAP-ISH'},
+        {x:1710,y:650,w:300,h:180,to:'tap',spawn:{x:480,y:420},label:'TAP & VINE'},
         {x:1960,y:1080,w:210,h:300,to:'fats',spawn:{x:180,y:420},label:'PAD THAI PALACE',lockedQuest:4}
       ],
       props:[
@@ -99,8 +99,16 @@ window.PAD_WORLD = {
           name:'DAD',
           lines:[
             'You two again?',
+            'Have you actually found the car this time?'
+          ],
+          rickLines:[
+            'There he is. My wandering son.',
             'Have you actually found the car this time?',
             'Rick: yes. Eventually.'
+          ],
+          lauraLines:[
+            'You keeping him organised then?',
+            'Laura: I have several systems. None of them can locate his glasses.'
           ]
         },
         {
@@ -189,7 +197,7 @@ window.PAD_WORLD = {
     },
 
     tap: {
-      name:'Tap-ish',
+      name:'Tap & Vine',
       kind:'indoor',
       size:[960,620],
       floor:'#332b45',
@@ -201,7 +209,7 @@ window.PAD_WORLD = {
         {type:'stage',x:250,y:350,w:260,h:100},
         {type:'guitar',x:250,y:300},
         {type:'wine',x:620,y:220},
-        {type:'sign',x:480,y:75,text:'TAP-ISH'}
+        {type:'sign',x:480,y:75,text:'TAP & VINE'}
       ],
       npcs:[
         {
@@ -211,8 +219,15 @@ window.PAD_WORLD = {
           name:'WILL',
           quest:2,
           lines:[
+            "When you're in the Tap, you're a pub."
+          ],
+          rickLines:[
             "When you're in the Tap, you're a pub.",
             'Rick: that sentence has never improved with repetition.'
+          ],
+          lauraLines:[
+            "When you're in the Tap, you're a pub.",
+            'Laura: Will, I am begging you to explain that sentence.'
           ]
         },
         {
@@ -222,6 +237,15 @@ window.PAD_WORLD = {
           name:'DENISE',
           quest:2,
           lines:[
+            'Kendal again next year, then?',
+            'Obviously.'
+          ],
+          rickLines:[
+            'Kendal again next year, then?',
+            'Rick: apparently I have no say in this.',
+            'Denise: correct.'
+          ],
+          lauraLines:[
             'Kendal again next year, then?',
             'Laura: obviously.',
             'Denise hands Laura a tactical Sauvignon.'
