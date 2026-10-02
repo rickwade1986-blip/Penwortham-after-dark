@@ -21,16 +21,16 @@ jobs:
         run: |
           CHROME="$(which google-chrome || which chromium || which chromium-browser)"
           echo "Using $CHROME"
-          "$CHROME"             --headless=new             --no-sandbox             --disable-gpu             --virtual-time-budget=6000             --dump-dom             http://127.0.0.1:8000/index.html > rendered.html
+          "$CHROME"             --headless=new             --no-sandbox             --disable-gpu             --enable-unsafe-swiftshader             --disable-dev-shm-usage             --virtual-time-budget=6500             --dump-dom             "http://127.0.0.1:8000/v4/index.html?test=1&reset=1" > rendered.html
           grep -q "<canvas" rendered.html
           grep -q "PENWORTHAM" rendered.html
           grep -q "OBJECTIVE" rendered.html
           grep -q 'data-game-ready="true"' rendered.html
-          grep -q 'data-premium-sprites="true"' rendered.html
+          grep -q 'data-scene="town"' rendered.html
       - name: Capture smoke screenshot
         run: |
           CHROME="$(which google-chrome || which chromium || which chromium-browser)"
-          "$CHROME"             --headless=new             --no-sandbox             --disable-gpu             --window-size=1365,768             --virtual-time-budget=4000             --screenshot=smoke.png             http://127.0.0.1:8000/index.html
+          "$CHROME"             --headless=new             --no-sandbox             --disable-gpu             --enable-unsafe-swiftshader             --disable-dev-shm-usage             --window-size=1365,768             --virtual-time-budget=5000             --screenshot=smoke.png             "http://127.0.0.1:8000/v4/index.html?test=1&reset=1"
       - uses: actions/upload-artifact@v4
         with:
           name: smoke-screenshot
