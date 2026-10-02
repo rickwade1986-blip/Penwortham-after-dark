@@ -52,3 +52,7 @@ button{font:inherit;touch-action:manipulation}
   #dialogue-portrait{width:68px;min-width:68px;height:68px}
   #dialogue-line{font-size:12px}
 }
+
+#dialogue-portrait{overflow:hidden;display:grid;place-items:end center}
+#dialogue-portrait img{width:100%;height:100%;object-fit:contain;object-position:center bottom;filter:drop-shadow(0 6px 8px #0008)}
+#dialogue-portrait span{font-family:Bangers,Impact,sans-serif;font-size:28px;color:var(--pink);align-self:center}
