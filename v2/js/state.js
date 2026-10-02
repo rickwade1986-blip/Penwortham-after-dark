@@ -5,10 +5,23 @@ PAD2.quest={
   MILK_FOUND:'MILK_FOUND',
   WILL_MET:'WILL_MET',
   DENISE_MET:'DENISE_MET',
-  BEAT_FOUND:'BEAT_FOUND',
+  TURKISH_DONE:'TURKISH_DONE',
   FATS_UNLOCKED:'FATS_UNLOCKED',
   BOSS_ACTIVE:'BOSS_ACTIVE',
   COMPLETE:'COMPLETE'
+};
+
+PAD2.objectives={
+  CAR_NOT_FOUND:"Find Rick's car",
+  CAR_FOUND:"Now find the glasses, genius",
+  GLASSES_FOUND:"Behbeh, we need milk too",
+  MILK_FOUND:"Go to Tap & Vine",
+  WILL_MET:"Find Denise. She'll know what's going on.",
+  DENISE_MET:"Get some food at The Turkish",
+  TURKISH_DONE:"Something's kicked off. Find FATS.",
+  FATS_UNLOCKED:"Enter Pad Thai Palace",
+  BOSS_ACTIVE:"De-pout FATS",
+  COMPLETE:"Go somewhere unnecessarily expensive for a water"
 };
 
 PAD2.state={
@@ -17,9 +30,12 @@ PAD2.state={
       hero:'rick',
       hp:6,
       quest:PAD2.quest.CAR_NOT_FOUND,
-      room:'test',
-      items:{},
-      flags:{},
+      room:'StreetScene',
+      items:{car:false,glasses:false,milk:false,wine:false,baklava:false},
+      flags:{
+        willMet:false,deniseMet:false,kendalVisited:false,beatFound:false,
+        dadTalked:false,turkishEaten:false
+      },
       settings:{haptics:true}
     };
   },
@@ -30,30 +46,25 @@ PAD2.state={
     }
     try{
       const raw=JSON.parse(localStorage.getItem(PAD2.config.storageKey)||'null');
-      this.data=raw?{...this.fresh(),...raw}:this.fresh();
+      const fresh=this.fresh();
+      this.data=raw?{
+        ...fresh,...raw,
+        items:{...fresh.items,...(raw.items||{})},
+        flags:{...fresh.flags,...(raw.flags||{})},
+        settings:{...fresh.settings,...(raw.settings||{})}
+      }:fresh;
     }catch{this.data=this.fresh()}
     return this.data;
   },
   save(){
     try{localStorage.setItem(PAD2.config.storageKey,JSON.stringify(this.data))}catch{}
+    PAD2.ui?.refresh?.();
   },
-  transition(next){
-    const q=PAD2.quest;
-    const allowed={
-      [q.CAR_NOT_FOUND]:[q.CAR_FOUND],
-      [q.CAR_FOUND]:[q.GLASSES_FOUND],
-      [q.GLASSES_FOUND]:[q.MILK_FOUND],
-      [q.MILK_FOUND]:[q.WILL_MET],
-      [q.WILL_MET]:[q.DENISE_MET],
-      [q.DENISE_MET]:[q.BEAT_FOUND],
-      [q.BEAT_FOUND]:[q.FATS_UNLOCKED],
-      [q.FATS_UNLOCKED]:[q.BOSS_ACTIVE],
-      [q.BOSS_ACTIVE]:[q.COMPLETE],
-      [q.COMPLETE]:[]
-    };
-    const current=this.data.quest;
-    if(!(allowed[current]||[]).includes(next))return false;
+  setQuest(next){
     this.data.quest=next;this.save();return true;
+  },
+  objective(){
+    return PAD2.objectives[this.data.quest]||'Cause avoidable chaos';
   }
 };
 PAD2.state.load();
