@@ -672,7 +672,7 @@
     // Always show the entire room width. This deliberately avoids the absurdly zoomed-in old build.
     viewScale = sw / room.w;
     const visibleWorldH = sh / viewScale;
-    cameraY = clamp(player.y - visibleWorldH * .58, 0, Math.max(0, room.h - visibleWorldH));
+    cameraY = clamp(player.y - visibleWorldH * .68, 0, Math.max(0, room.h - visibleWorldH));
   }
 
   function screenToWorldY(sy) { return sy / viewScale + cameraY; }
@@ -855,7 +855,7 @@
   function drawPlayer() {
     const p = worldToScreen(player.x,player.y);
     const img = images[state.hero + player.step];
-    const baseH = state.hero === 'laura' ? 142 : 148;
+    const baseH = state.hero === 'laura' ? 178 : 184;
     const bob = Math.sin(player.walk*Math.PI) * 3.3;
     const lean = clamp(player.vx/260,-1,1)*.035;
     const h = baseH*viewScale;
