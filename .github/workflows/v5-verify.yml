@@ -1,0 +1,43 @@
+name: Verify V5 concept-first build
+
+on:
+  push:
+    branches: ["v5-concept-art"]
+    paths:
+      - "v5/**"
+      - ".github/workflows/v5-verify.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Syntax check
+        run: node --check v5/game.js
+      - name: Start server
+        run: |
+          python3 -m http.server 8000 >/tmp/v5-http.log 2>&1 &
+          sleep 2
+      - name: Browser smoke
+        run: |
+          CHROME="$(which google-chrome || which chromium || which chromium-browser)"
+          "$CHROME" --headless=new --no-sandbox --disable-gpu --enable-unsafe-swiftshader --disable-dev-shm-usage             --virtual-time-budget=6500 --dump-dom "http://127.0.0.1:8000/v5/index.html?reset=1" > rendered.html
+          grep -q 'data-game-ready="true"' rendered.html
+          grep -q 'data-quest="CAR"' rendered.html
+          grep -q '<canvas' rendered.html
+          grep -q "Find Rick's car" rendered.html
+      - name: Capture screenshot
+        if: always()
+        run: |
+          CHROME="$(which google-chrome || which chromium || which chromium-browser)"
+          "$CHROME" --headless=new --no-sandbox --disable-gpu --enable-unsafe-swiftshader --disable-dev-shm-usage             --window-size=1800,828 --virtual-time-budget=6500             --screenshot=v5-town.png "http://127.0.0.1:8000/v5/index.html?reset=1" || true
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: v5-screenshot
+          path: v5-town.png
+          retention-days: 3
