@@ -1,0 +1,47 @@
+name: Inspect legacy premium art
+
+on:
+  workflow_dispatch:
+  push:
+    branches: ["v2-rebuild"]
+    paths:
+      - ".github/workflows/inspect-legacy-art.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  inspect:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install pillow
+      - name: Make contact sheet
+        run: |
+          python - <<'PY'
+          from PIL import Image,ImageOps,ImageDraw
+          from pathlib import Path
+          names=["rick","laura","fats","dad"]
+          cards=[]
+          for name in names:
+              p=Path("assets/characters")/name/"down0.png"
+              im=Image.open(p).convert("RGBA")
+              bg=Image.new("RGBA",(420,560),"#24212b")
+              thumb=ImageOps.contain(im,(380,500))
+              bg.alpha_composite(thumb,((420-thumb.width)//2,20))
+              d=ImageDraw.Draw(bg)
+              d.rectangle((0,520,420,560),fill="#111018")
+              d.text((18,532),name.upper(),fill="white")
+              cards.append(bg)
+          sheet=Image.new("RGBA",(420*4,560),"#111018")
+          for i,c in enumerate(cards):sheet.alpha_composite(c,(i*420,0))
+          sheet.convert("RGB").save("legacy-contact.jpg",quality=92)
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: legacy-contact
+          path: legacy-contact.jpg
+          retention-days: 3
