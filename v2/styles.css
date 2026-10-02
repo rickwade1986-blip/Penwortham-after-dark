@@ -1,0 +1,54 @@
+@import url('https://fonts.googleapis.com/css2?family=Bangers&family=IBM+Plex+Sans:wght@500;700&display=swap');
+
+:root{--ink:#090b10;--panel:#0c0f16e8;--paper:#f4efe8;--lime:#b7ff39;--pink:#ff4fa3;--gold:#f4c65f}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;width:100%;height:100%;overflow:hidden;overscroll-behavior:none;background:var(--ink);color:var(--paper);font-family:'IBM Plex Sans',system-ui,sans-serif;touch-action:none;user-select:none;-webkit-user-select:none;-webkit-text-size-adjust:100%}
+body{position:fixed;inset:0}
+button{font:inherit;touch-action:manipulation}
+#game{position:fixed;inset:0}
+#game canvas{display:block;width:100%!important;height:100%!important;touch-action:none}
+
+#hud{position:fixed;z-index:20;left:max(12px,env(safe-area-inset-left));top:max(10px,env(safe-area-inset-top));display:flex;gap:10px;align-items:center;pointer-events:none}
+.logo{font-family:Bangers,Impact,sans-serif;font-size:clamp(18px,2.3vw,28px);letter-spacing:.035em;padding:7px 11px 5px;border-radius:10px;background:var(--panel);border:1px solid #ffffff1e;box-shadow:0 8px 26px #0008}.logo b{color:var(--lime)}
+#objective{font-size:11px;font-weight:700;letter-spacing:.08em;padding:9px 12px;border-left:4px solid var(--lime);border-radius:7px;background:var(--panel);box-shadow:0 8px 26px #0008}
+
+#hero-chip{position:fixed;z-index:20;right:max(12px,env(safe-area-inset-right));top:max(12px,env(safe-area-inset-top));display:flex;gap:9px;align-items:center;padding:8px 11px;border-radius:10px;background:var(--panel);pointer-events:none}
+#hero-name{font-family:Bangers,Impact,sans-serif;font-size:18px;color:var(--lime)}
+#hero-hp{font-size:13px;color:#ff6670;letter-spacing:1px}
+
+#joy-zone{position:fixed;z-index:30;left:0;bottom:0;width:46vw;height:62vh;touch-action:none}
+#joy-base{position:absolute;width:138px;height:138px;border-radius:50%;transform:translate(-50%,-50%);background:#080a1190;border:3px solid #ffffff4b;box-shadow:inset 0 0 0 8px #ffffff08,0 12px 30px #0008;backdrop-filter:blur(5px)}
+#joy-base.hidden{display:none}
+#joy-knob{position:absolute;left:50%;top:50%;width:66px;height:66px;border-radius:50%;transform:translate(-50%,-50%);background:radial-gradient(circle at 35% 30%,#ecffd0 0 10%,var(--lime) 12% 56%,#668c20 58%);border:3px solid #151a0d;box-shadow:0 8px 20px #0009,0 0 18px #b7ff3940}
+
+#buttons{position:fixed;z-index:31;right:max(12px,env(safe-area-inset-right));bottom:max(12px,env(safe-area-inset-bottom));display:flex;align-items:flex-end;gap:9px}
+#buttons button{border:0;font-family:Bangers,Impact,sans-serif;box-shadow:0 7px 0 #0009,0 12px 28px #0006}
+#buttons button:active{transform:translateY(4px);box-shadow:0 3px 0 #0009}
+#swap{width:70px;height:52px;border:2px solid var(--pink)!important;border-radius:999px;background:#0b0d15e8;color:var(--pink);font-size:17px}
+#act{width:74px;height:68px;border-radius:999px;background:#efe9df;color:#17131b;font-size:20px}
+#ability{width:108px;height:84px;border-radius:999px;background:var(--lime);color:#10150a;font-size:20px}
+
+#dialogue{position:fixed;z-index:50;left:50%;bottom:max(102px,calc(env(safe-area-inset-bottom) + 90px));transform:translateX(-50%);width:min(720px,80vw);min-height:106px;display:flex;gap:12px;padding:10px 14px 10px 10px;background:#090b13f6;border:2px solid #f4efe8;border-radius:14px;box-shadow:0 20px 64px #000d}
+#dialogue.hidden{display:none}
+#dialogue-portrait{width:84px;min-width:84px;height:84px;border-radius:11px;background:linear-gradient(145deg,#2b2434,#111017);border:1px solid #ffffff20}
+.dialogue-copy{flex:1;min-width:0;padding-top:3px}
+#dialogue-name{font-family:Bangers,Impact,sans-serif;color:var(--lime);font-size:21px;margin-bottom:4px}
+#dialogue-line{font-size:14px;line-height:1.35;max-width:55ch}
+.dialogue-next{text-align:right;margin-top:7px;color:#948a9d;font-size:10px;font-weight:700}
+
+#rotate{display:none}
+@media (orientation:portrait) and (max-width:780px){
+  #game,#hud,#hero-chip,#joy-zone,#buttons{filter:blur(5px) brightness(.35)}
+  #rotate{position:fixed;z-index:100;inset:0;display:grid;place-items:center;text-align:center;background:#05070a8c;color:var(--lime);font-family:Bangers,Impact,sans-serif;font-size:48px;line-height:.8}
+  #rotate small{font-size:25px;line-height:1}
+}
+@media (max-height:500px){
+  #joy-base{width:112px;height:112px}
+  #joy-knob{width:54px;height:54px}
+  #ability{width:92px;height:70px;font-size:18px}
+  #act{width:62px;height:58px}
+  #swap{width:62px;height:48px}
+  #dialogue{bottom:80px;min-height:88px}
+  #dialogue-portrait{width:68px;min-width:68px;height:68px}
+  #dialogue-line{font-size:12px}
+}
