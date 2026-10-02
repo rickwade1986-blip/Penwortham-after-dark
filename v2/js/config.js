@@ -1,0 +1,12 @@
+window.PAD2=window.PAD2||{};
+PAD2.config={
+  storageKey:'penwortham-after-dark-v2-foundation',
+  world:{width:1600,height:1000},
+  player:{maxSpeed:230,accel:10,decel:12,deadzone:.14},
+  camera:{zoom:1.15,lerp:.10}
+};
+PAD2.runtime={
+  pausedForDialogue:false,
+  input:{x:0,y:0},
+  activeScene:null
+};
