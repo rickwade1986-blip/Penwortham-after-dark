@@ -4,12 +4,14 @@ on:
   push:
     branches: ["v5-concept-art"]
     paths:
-      - "v5/**"
+      - "v5/index.html"
+      - "v5/style.css"
+      - "v5/game.js"
       - ".github/workflows/v5-verify.yml"
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   verify:
@@ -41,3 +43,14 @@ jobs:
           name: v5-screenshot
           path: v5-town.png
           retention-days: 3
+      - name: Publish preview image
+        if: success()
+        run: |
+          cp v5-town.png v5/preview.png
+          git config user.name "Penwortham After Dark Bot"
+          git config user.email "actions@github.com"
+          git add v5/preview.png
+          if ! git diff --cached --quiet; then
+            git commit -m "Update V5 visual preview"
+            git push
+          fi
