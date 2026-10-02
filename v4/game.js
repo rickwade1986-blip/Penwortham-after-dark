@@ -1189,6 +1189,11 @@
       document.body.dataset.scene=state.scene;
       document.body.dataset.quest=state.quest;
 
+      function drainDialogueForTest() {
+        let guard = 0;
+        while (dialogue && guard++ < 30) advanceDialogue();
+      }
+
       // CI-only progression check: the car must unlock the shop/milk path.
       if (params.get('autotest') === 'car-milk') {
         state.quest = Q.CAR;
@@ -1196,11 +1201,46 @@
         buildScene();
         const car = hotspots.find(h => h.id === 'car');
         if (car && car.act) car.act();
+        drainDialogueForTest();
         document.body.dataset.autoTest = state.quest + ':' + (document.body.dataset.hotspots || '');
-        if (dialogue) {
-          dialogue = null;
-          ui.dialogue.classList.add('hidden');
-        }
+      }
+
+      // Full regression for the new glasses side quest:
+      // Will -> Kendal wristband -> Will -> glasses -> Denise.
+      if (params.get('autotest') === 'will-glasses-chain') {
+        state.scene = 'tap';
+        room = SCENES.tap;
+        player.x = 300; player.y = 510;
+        state.quest = Q.WILL;
+        state.flags.will = false;
+        state.flags.wristband = false;
+        state.flags.glasses = false;
+        buildScene();
+
+        const will1 = hotspots.find(h => h.id === 'will');
+        if (will1 && will1.act) will1.act();
+        drainDialogueForTest();
+
+        state.scene = 'kendal';
+        room = SCENES.kendal;
+        player.x = 700; player.y = 480;
+        buildScene();
+        const wristband = hotspots.find(h => h.id === 'flashback');
+        if (wristband && wristband.act) wristband.act();
+        drainDialogueForTest();
+
+        state.scene = 'tap';
+        room = SCENES.tap;
+        player.x = 300; player.y = 510;
+        buildScene();
+        const will2 = hotspots.find(h => h.id === 'will');
+        if (will2 && will2.act) will2.act();
+        drainDialogueForTest();
+
+        document.body.dataset.autoTest =
+          state.quest + ':wristband=' + String(!!state.flags.wristband) +
+          ':glasses=' + String(!!state.flags.glasses) +
+          ':hotspots=' + (document.body.dataset.hotspots || '');
       }
 
       requestAnimationFrame(loop);
