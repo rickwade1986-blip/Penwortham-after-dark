@@ -94,7 +94,9 @@
         wine: false,
         beat: false,
         bossDefeated: false,
-        tapGlasses: [false,false,false]
+        tapGlasses: [false,false,false],
+        kendalSearch: [false,false,false],
+        coneKicks: 0
       }
     };
   }
@@ -116,6 +118,8 @@
     if (SCENES[testScene]) s.scene = testScene;
     if (Object.values(Q).includes(testQuest)) s.quest = testQuest;
     if (!Array.isArray(s.flags.tapGlasses) || s.flags.tapGlasses.length !== 3) s.flags.tapGlasses = [false,false,false];
+    if (!Array.isArray(s.flags.kendalSearch) || s.flags.kendalSearch.length !== 3) s.flags.kendalSearch = [false,false,false];
+    if (typeof s.flags.coneKicks !== 'number') s.flags.coneKicks = 0;
     if (params.get('test') === '1') s.flags.started = true;
     return s;
   }
@@ -134,6 +138,8 @@
   let barkTimer = 3.8;
   let fatsRunner = null;
   let fatsRunnerHotspot = null;
+  let cone = {x:690,y:735,vx:0,vy:0};
+  let coneHotspot = null;
   let last = performance.now();
   let running = false;
   let viewScale = 1;
@@ -196,7 +202,9 @@
 
   function refreshUI() {
     const h = HERO[state.hero];
-    ui.objective.textContent = objectiveText[state.quest] || 'Cause avoidable chaos';
+    ui.objective.textContent = state.quest === Q.WRISTBAND
+      ? "Search Kendal for Will's wristband (" + state.flags.kendalSearch.filter(Boolean).length + "/3)"
+      : (objectiveText[state.quest] || 'Cause avoidable chaos');
     ui.heroName.textContent = h.name;
     ui.heroName.style.color = h.color;
     ui.hearts.textContent = '♥'.repeat(Math.max(0, state.hp)) + '♡'.repeat(Math.max(0, state.maxHp - state.hp));
@@ -333,6 +341,7 @@
     npcs = [];
     fatsRunner = null;
     fatsRunnerHotspot = null;
+    coneHotspot = null;
     const scene = currentSceneName();
 
     if (scene === 'town') {
@@ -395,6 +404,24 @@
         ability:() => say(state.hero.toUpperCase(), state.hero === 'rick'
           ? ['I could sell this bench a consultancy package.']
           : ['Bullshit bench.'])
+      });
+
+      coneHotspot = addHotspot({
+        id:'cone', x:cone.x, y:cone.y, r:78, label:'OBNOXIOUS TRAFFIC CONE',
+        act:() => {
+          const dx = player.dirX || 0.7;
+          const dy = player.dirY || 0.2;
+          cone.vx += dx * 310;
+          cone.vy += dy * 310;
+          state.flags.coneKicks += 1;
+          save();
+          burst(cone.x,cone.y,'#ff8a3d',10,70);
+          if (state.flags.coneKicks === 1) showToast('CONE: ESCALATED', 700);
+          else if (state.flags.coneKicks === 3) showToast('ACHIEVEMENT: LOCAL GOVERNMENT', 900);
+        },
+        ability:() => say(state.hero.toUpperCase(), state.hero === 'rick'
+          ? ['I can explain why the cone needs to be there.', 'Laura: Can you?', 'Rick: No.']
+          : ['Bullshit cone.'])
       });
 
       if ([Q.FATS,Q.DONE].includes(state.quest)) {
@@ -732,46 +759,86 @@
     }
 
     if (scene === 'kendal') {
-      addHotspot({
-        id:'flashback', x:700, y:480, r:165, label: state.quest === Q.WRISTBAND ? "WILL'S WRISTBAND" : 'QUESTIONABLE FESTIVAL MEMORY',
-        ability:() => say(state.hero.toUpperCase(), state.hero === 'rick'
-          ? ['Rick: I remember Kendal perfectly.', 'Laura: You lost the car park while standing in it.', 'Rick: That was tactical.']
-          : ['Laura: I am calling bullshit on everyone claiming they remember this weekend.', 'Rick: Finally, evidence-based policy.']),
-        act:() => {
-          if (state.quest === Q.WRISTBAND && !state.flags.wristband) {
-            say('LAURA', [
-              "There. Will's wristband.",
-              "Rick: Why is it here?",
-              "Laura: Because apparently the entire town operates like a Zelda dungeon now.",
-              "Rick: Fair."
-            ], () => {
-              state.flags.wristband = true;
-              state.flags.kendal = true;
-              state.flags.beat = true;
-              advanceQuest(Q.GLASSES);
-              showToast("WILL'S WRISTBAND ACQUIRED", 1400);
-              burst(700,480,'#ff4fa3',30);
-            });
-            return;
-          }
-
-          if (!state.flags.kendal) {
-            say('LAURA', [
-              'I remember this bit.',
-              'Rick: You absolutely do not.',
-              'Laura: Correct. That is why it was good.'
-            ], () => {
-              state.flags.kendal = true;
-              state.flags.beat = true;
-              save();
-              showToast('DUSTY FESTIVAL MEMORY UNLOCKED', 1250);
-              burst(700,480,'#ff4fa3',28);
-            });
-          } else {
-            say('RICK', ['Parking remains spiritually unresolved.']);
-          }
+      const searchSpots = [
+        {
+          id:'kendalHat', x:300, y:545, label:'MUDDY BUCKET HAT',
+          lines:['Rick: This could be it.','Laura: That is a hat.','Rick: Wristband-adjacent.','Laura: No.']
+        },
+        {
+          id:'kendalChair', x:700, y:505, label:'ABANDONED CAMPING CHAIR',
+          lines:['Laura: Check under that chair.','Rick: I found half a cereal bar.','Laura: Put it down.','Rick: Coward.']
+        },
+        {
+          id:'kendalLost', x:1110, y:545, label:'LOST PROPERTY CRATE',
+          lines:['Rick: This box contains one shoe, three lighters and a spoon.','Laura: Festival archaeology.']
         }
-      });
+      ];
+
+      if (state.quest === Q.WRISTBAND && !state.flags.wristband) {
+        searchSpots.forEach((spot,i) => {
+          if (state.flags.kendalSearch[i]) return;
+          addHotspot({
+            id:spot.id, x:spot.x, y:spot.y, r:105, label:spot.label,
+            act:() => {
+              state.flags.kendalSearch[i] = true;
+              const total = state.flags.kendalSearch.filter(Boolean).length;
+              save();
+              burst(spot.x,spot.y,i===0?'#e7c052':i===1?'#6da7c1':'#ff4fa3',14,78);
+
+              if (total < 3) {
+                say(i===1?'LAURA':'RICK', spot.lines, () => {
+                  showToast(total + '/3 PLACES SEARCHED', 700);
+                  buildScene();
+                });
+                return;
+              }
+
+              say('RICK + LAURA', [
+                ...spot.lines,
+                'Laura: Hang on. What is that stuck underneath it?',
+                "Rick: Will's wristband.",
+                'Laura: So we had to search literally everything first.',
+                'Rick: Classic game design.'
+              ], () => {
+                state.flags.wristband = true;
+                state.flags.kendal = true;
+                state.flags.beat = true;
+                advanceQuest(Q.GLASSES);
+                showToast("WILL'S WRISTBAND ACQUIRED", 1300);
+                burst(spot.x,spot.y,'#f2c766',30,120);
+              });
+            },
+            ability:() => say(state.hero.toUpperCase(), state.hero === 'rick'
+              ? ['I can deduce this.', 'Laura: You are looking at a camping chair.']
+              : ['Bullshit. Search it properly.'])
+          });
+        });
+      } else {
+        addHotspot({
+          id:'flashback', x:700, y:480, r:165, label:'QUESTIONABLE FESTIVAL MEMORY',
+          ability:() => say(state.hero.toUpperCase(), state.hero === 'rick'
+            ? ['Rick: I remember Kendal perfectly.', 'Laura: You lost the car park while standing in it.', 'Rick: Tactical.']
+            : ['Laura: I am calling bullshit on everyone claiming they remember this weekend.', 'Rick: Finally, evidence-based policy.']),
+          act:() => {
+            if (!state.flags.kendal) {
+              say('LAURA', [
+                'I remember this bit.',
+                'Rick: You absolutely do not.',
+                'Laura: Correct. That is why it was good.'
+              ], () => {
+                state.flags.kendal = true;
+                state.flags.beat = true;
+                save();
+                showToast('DUSTY FESTIVAL MEMORY UNLOCKED', 1250);
+                burst(700,480,'#ff4fa3',28);
+              });
+            } else {
+              say('RICK', ['Parking remains spiritually unresolved.']);
+            }
+          }
+        });
+      }
+
       addHotspot({ id:'exit', x:700, y:718, r:125, label:'BACK', act:() => setScene(state.flags.will ? 'tap' : 'town') });
     }
   }
@@ -1025,6 +1092,19 @@
       }
 
       tryMove(player.x + player.vx*dt, player.y + player.vy*dt);
+    }
+
+    if (currentSceneName() === 'town') {
+      cone.x += cone.vx*dt;
+      cone.y += cone.vy*dt;
+      cone.vx *= Math.pow(.055,dt);
+      cone.vy *= Math.pow(.055,dt);
+      cone.x = clamp(cone.x,520,1130);
+      cone.y = clamp(cone.y,560,835);
+      if (coneHotspot) {
+        coneHotspot.x = cone.x;
+        coneHotspot.y = cone.y;
+      }
     }
 
     player.flash = Math.max(0, player.flash-dt);
@@ -1345,6 +1425,49 @@
     });
   }
 
+  function drawQuestProps() {
+    const scene=currentSceneName();
+    const t=performance.now()/1000;
+
+    if (scene==='town') {
+      const p=worldToScreen(cone.x,cone.y);
+      const s=Math.max(.5,viewScale);
+      ctx.save();
+      ctx.translate(p.x,p.y);
+      ctx.rotate(clamp(cone.vx/700,-.35,.35));
+      ctx.fillStyle='#f07832';
+      ctx.strokeStyle='#151218';
+      ctx.lineWidth=4*s;
+      ctx.beginPath();
+      ctx.moveTo(0,-34*s);ctx.lineTo(-23*s,12*s);ctx.lineTo(23*s,12*s);ctx.closePath();ctx.fill();ctx.stroke();
+      ctx.fillStyle='#f7eee1';ctx.fillRect(-16*s,-2*s,32*s,8*s);
+      ctx.fillStyle='#e56b2c';ctx.fillRect(-30*s,11*s,60*s,10*s);
+      ctx.strokeRect(-30*s,11*s,60*s,10*s);
+      ctx.restore();
+    }
+
+    if (scene==='kendal' && state.quest===Q.WRISTBAND && !state.flags.wristband) {
+      const spots=[
+        {x:300,y:545,color:'#e7c052',glyph:'HAT'},
+        {x:700,y:505,color:'#6da7c1',glyph:'CHAIR'},
+        {x:1110,y:545,color:'#ff4fa3',glyph:'LOST'}
+      ];
+      spots.forEach((sp,i)=>{
+        if(state.flags.kendalSearch[i]) return;
+        const p=worldToScreen(sp.x,sp.y+Math.sin(t*2+i)*4);
+        const r=18*Math.max(.55,viewScale);
+        ctx.save();
+        ctx.strokeStyle=sp.color;ctx.fillStyle='rgba(9,11,17,.86)';
+        ctx.lineWidth=3;
+        ctx.beginPath();ctx.arc(p.x,p.y,r,0,Math.PI*2);ctx.fill();ctx.stroke();
+        ctx.font='900 '+Math.max(8,10*viewScale)+'px Impact, Arial Black, sans-serif';
+        ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillStyle=sp.color;
+        ctx.fillText(sp.glyph,p.x,p.y+1);
+        ctx.restore();
+      });
+    }
+  }
+
   function drawAmbient() {
     const t = performance.now()/1000;
     if (currentSceneName() === 'town') {
@@ -1395,6 +1518,7 @@
     const bg = images[room.bg];
     if (bg) drawWorldImage(bg);
     drawAmbient();
+    drawQuestProps();
     drawTapCollectibles();
 
     npcs.forEach(drawNpc);
@@ -1618,6 +1742,28 @@
         document.body.dataset.deniseTest =
           state.quest + ':wine=' + String(!!state.flags.wine) +
           ':glasses=' + state.flags.tapGlasses.filter(Boolean).length;
+      }
+
+
+      if (params.get('autotest') === 'kendal-search') {
+        state.scene = 'kendal';
+        room = SCENES.kendal;
+        state.quest = Q.WRISTBAND;
+        state.flags.wristband = false;
+        state.flags.kendalSearch = [false,false,false];
+        player.x=700;player.y=500;
+        buildScene();
+
+        for (const id of ['kendalHat','kendalChair','kendalLost']) {
+          const h=hotspots.find(x=>x.id===id);
+          h?.act?.();
+          drainDialogueForTest();
+          buildScene();
+        }
+
+        document.body.dataset.kendalTest =
+          state.quest + ':wristband=' + String(!!state.flags.wristband) +
+          ':searched=' + state.flags.kendalSearch.filter(Boolean).length;
       }
 
       requestAnimationFrame(loop);
