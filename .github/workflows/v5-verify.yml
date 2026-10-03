@@ -20,8 +20,17 @@ jobs:
         run: node --check v5/game.js
       - name: Asset gate
         run: |
-          test -f v5/assets/environments/tap-interior-candidate-01.jpg
-          test -f v5/assets/environments/tap-exterior-candidate-01.jpg
+          test -f v5/assets/environments/tap-interior.png
+          test -f v5/assets/environments/tap-exterior.png
+          test -f v5/assets/characters/rick-master.png
+          test -f v5/assets/characters/rick-side-walk.png
+          test -f v5/assets/characters/rick-back-walk.png
+          test -f v5/assets/characters/laura-master.png
+          test -f v5/assets/characters/laura-side-walk.png
+          test -f v5/assets/characters/laura-back-walk.png
+          test -f v5/assets/characters/will.png
+          test -f v5/assets/characters/denise.png
+          test -f v5/assets/characters/dad.png
       - name: Start server
         run: |
           python3 -m http.server 8000 >/tmp/v5-http.log 2>&1 &
@@ -30,22 +39,22 @@ jobs:
         run: |
           CHROME="$(which google-chrome || which chromium || which chromium-browser)"
           FLAGS="--headless=new --no-sandbox --disable-gpu --enable-unsafe-swiftshader --disable-dev-shm-usage --virtual-time-budget=7000"
-          "$CHROME" $FLAGS --dump-dom "http://127.0.0.1:8000/v5/index.html?test=1&dev=1" > exterior.html
+          "$CHROME" $FLAGS --dump-dom "http://127.0.0.1:8000/v5/index.html?test=1" > exterior.html
           grep -q 'data-v5-ready="true"' exterior.html
           grep -q 'data-scene="exterior"' exterior.html
           grep -q 'data-hotspots="tap-door"' exterior.html
-          "$CHROME" $FLAGS --dump-dom "http://127.0.0.1:8000/v5/index.html?test=1&dev=1&scene=tap" > smoke.html
+          "$CHROME" $FLAGS --dump-dom "http://127.0.0.1:8000/v5/index.html?test=1&scene=tap" > smoke.html
           grep -q 'data-v5-ready="true"' smoke.html
           grep -q 'data-scene="tap"' smoke.html
           grep -q 'data-hotspots="will,denise,dad,display"' smoke.html
-          "$CHROME" $FLAGS --dump-dom "http://127.0.0.1:8000/v5/index.html?test=1&dev=1&scene=tap&autotest=quest-chain" > chain.html
+          "$CHROME" $FLAGS --dump-dom "http://127.0.0.1:8000/v5/index.html?test=1&scene=tap&autotest=quest-chain" > chain.html
           grep -q 'data-auto-test="COMPLETE:wristband=true:access=true"' chain.html
       - name: Capture production-room screenshot
         if: always()
         run: |
           CHROME="$(which google-chrome || which chromium || which chromium-browser)"
-          "$CHROME" --headless=new --no-sandbox --disable-gpu --enable-unsafe-swiftshader --disable-dev-shm-usage --window-size=1600,900 --virtual-time-budget=6000 --screenshot=v5-exterior.png "http://127.0.0.1:8000/v5/index.html?test=1&dev=1" || true
-          "$CHROME" --headless=new --no-sandbox --disable-gpu --enable-unsafe-swiftshader --disable-dev-shm-usage --window-size=1600,900 --virtual-time-budget=6000 --screenshot=v5-tap.png "http://127.0.0.1:8000/v5/index.html?test=1&dev=1&scene=tap" || true
+          "$CHROME" --headless=new --no-sandbox --disable-gpu --enable-unsafe-swiftshader --disable-dev-shm-usage --window-size=1600,900 --virtual-time-budget=6000 --screenshot=v5-exterior.png "http://127.0.0.1:8000/v5/index.html?test=1" || true
+          "$CHROME" --headless=new --no-sandbox --disable-gpu --enable-unsafe-swiftshader --disable-dev-shm-usage --window-size=1600,900 --virtual-time-budget=6000 --screenshot=v5-tap.png "http://127.0.0.1:8000/v5/index.html?test=1&scene=tap" || true
       - uses: actions/upload-artifact@v4
         if: always()
         with:
