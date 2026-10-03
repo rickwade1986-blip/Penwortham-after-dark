@@ -2,7 +2,7 @@
   'use strict';
 
   const P = new URLSearchParams(location.search);
-  const DEV = P.get('dev') === '1' || P.get('test') === '1';
+  const DEV = P.get('dev') === '1';
 
   const Q = Object.freeze({
     TALK_WILL:'TALK_WILL',
@@ -215,7 +215,7 @@
       this.physics.add.collider(this.actor,facade);
 
       this.hotspots=[
-        {id:'tap-door',x:390,y:635,r:120,label:'ENTER TAP & VINE',act:()=>{
+        {id:'tap-door',x:925,y:625,r:150,label:'ENTER TAP & VINE',act:()=>{
           this.cameras.main.fadeOut(160,0,0,0);
           this.time.delayedCall(170,()=>this.scene.start('Tap'));
         }}
@@ -268,31 +268,30 @@
       this.cameras.main.setBounds(0,0,1600,900);
       this.add.image(800,450,'tap-bg').setDisplaySize(1600,900).setDepth(-20);
 
-      // Production collision map derived from the first approved room composition.
+      // Collision map matched to the production Tap background:
+      // keep the floor open, stop the player walking through the bar and stove.
       this.solids=this.physics.add.staticGroup();
       const wall=(x,y,w,h)=>{
         const r=this.add.rectangle(x,y,w,h,0x000000,0);
         this.physics.add.existing(r,true);
         this.solids.add(r);
       };
-      wall(355,455,620,360);   // bar
-      wall(1030,460,245,150);  // centre table
-      wall(1085,705,260,160);  // lower table
-      wall(1020,245,220,150);  // stove/snug furniture
+      wall(1190,620,650,310);  // U-shaped bar/front cabinetry
+      wall(560,320,235,185);   // stove / fireplace alcove
 
       // DEV-only body. Final branch will use approved Rick/Laura production sprites.
       this.actor=createProductionActor(this,860,760);
       this.physics.add.collider(this.actor,this.solids);
 
-      this.willSprite=addNpc(this,'will',520,392,145);
-      this.deniseSprite=addNpc(this,'denise',770,540,148);
-      this.dadSprite=addNpc(this,'dad',1210,582,132);
+      this.willSprite=addNpc(this,'will',1090,410,132);
+      this.deniseSprite=addNpc(this,'denise',720,560,142);
+      this.dadSprite=addNpc(this,'dad',455,705,126);
 
       this.wristbandVisual=this.add.graphics().setDepth(35);
       this.wristbandVisual.lineStyle(8,0xff4fa3,1);
-      this.wristbandVisual.strokeCircle(1280,270,16);
+      this.wristbandVisual.strokeCircle(805,205,16);
       this.wristbandVisual.lineStyle(3,0xf2c766,1);
-      this.wristbandVisual.strokeCircle(1280,270,10);
+      this.wristbandVisual.strokeCircle(805,205,10);
       this.wristbandVisual.setVisible(false);
 
       this.cameras.main.startFollow(this.actor,true,.12,.12);
@@ -300,10 +299,10 @@
       this.cameras.main.centerOn(800,450);
 
       this.hotspots=[
-        {id:'will',x:520,y:390,r:105,label:'WILL',act:()=>this.will()},
-        {id:'denise',x:770,y:535,r:90,label:'DENISE',act:()=>this.denise()},
-        {id:'dad',x:1210,y:575,r:90,label:'DAD',act:()=>this.dad()},
-        {id:'display',x:1280,y:270,r:110,label:'KENDAL DISPLAY',act:()=>this.display()}
+        {id:'will',x:825,y:455,r:150,label:'WILL',act:()=>this.will()},
+        {id:'denise',x:720,y:560,r:105,label:'DENISE',act:()=>this.denise()},
+        {id:'dad',x:455,y:705,r:105,label:'DAD',act:()=>this.dad()},
+        {id:'display',x:760,y:300,r:125,label:'KENDAL DISPLAY',act:()=>this.display()}
       ];
 
       if(DEV){
@@ -360,7 +359,7 @@
           state.quest=Q.RETURN_WILL;
           this.wristbandVisual?.setVisible(false);
           refreshUI();
-          const pulse=this.add.circle(1280,270,22,0xff4fa3,.18).setStrokeStyle(5,0xff4fa3,1).setDepth(70);
+          const pulse=this.add.circle(760,300,22,0xff4fa3,.18).setStrokeStyle(5,0xff4fa3,1).setDepth(70);
           this.tweens.add({targets:pulse,scale:4,alpha:0,duration:420,onComplete:()=>pulse.destroy()});
         });
       }else if(state.quest===Q.ACCESS_DISPLAY){
