@@ -119,28 +119,65 @@
   class Boot extends Phaser.Scene {
     constructor(){super('Boot')}
     preload(){
-      this.load.image('tap-bg','./assets/environments/tap-interior-candidate-01.jpg');
-      this.load.image('tap-exterior','./assets/environments/tap-exterior-candidate-01.jpg');
+      this.load.image('tap-bg','./assets/environments/tap-interior.png');
+      this.load.image('tap-exterior','./assets/environments/tap-exterior.png');
+
+      this.load.image('rick-down','./assets/characters/rick-master.png');
+      this.load.image('rick-side','./assets/characters/rick-side-walk.png');
+      this.load.image('rick-up','./assets/characters/rick-back-walk.png');
+
+      this.load.image('laura-down','./assets/characters/laura-master.png');
+      this.load.image('laura-side','./assets/characters/laura-side-walk.png');
+      this.load.image('laura-up','./assets/characters/laura-back-walk.png');
+
+      this.load.image('will','./assets/characters/will.png');
+      this.load.image('denise','./assets/characters/denise.png');
+      this.load.image('dad','./assets/characters/dad.png');
     }
     create(){
       this.scene.start(P.get('scene')==='tap'?'Tap':'Exterior');
     }
   }
 
-  function createDevActor(scene,x,y){
-    const key='v5-dev-actor';
-    if(!scene.textures.exists(key)){
-      const g=scene.add.graphics();
-      g.fillStyle(DEV?0xb6ff3b:0x000000,DEV?0.85:0);
-      g.fillCircle(26,26,22);
-      g.lineStyle(DEV?4:0,0x0b0d12,1);
-      g.strokeCircle(26,26,22);
-      g.generateTexture(key,52,52);
-      g.destroy();
-    }
-    const actor=scene.physics.add.sprite(x,y,key).setDepth(50).setCollideWorldBounds(true);
-    actor.body.setCircle(18,8,8);
+  function heroTexture(hero,dir){
+    if(dir==='up') return hero+'-up';
+    if(dir==='left'||dir==='right') return hero+'-side';
+    return hero+'-down';
+  }
+
+  function createProductionActor(scene,x,y){
+    const actor=scene.physics.add.sprite(x,y,heroTexture(state.hero,'down')).setDepth(50).setCollideWorldBounds(true);
+    actor.heroDir='down';
+    actor.walkClock=0;
+    actor.setDisplaySize(state.hero==='laura'?112:106,150);
+    actor.body.setSize(actor.width*.42,actor.height*.20,true);
+    actor.body.setOffset(actor.width*.29,actor.height*.73);
     return actor;
+  }
+
+  function applyHeroVisual(actor,hero,dir,moving,dt){
+    const key=heroTexture(hero,dir);
+    if(actor.texture.key!==key) actor.setTexture(key);
+    actor.setFlipX(dir==='right');
+    actor.heroDir=dir;
+    actor.setDisplaySize(hero==='laura'?112:106,150);
+
+    if(moving){
+      actor.walkClock=(actor.walkClock||0)+dt*10;
+      const bob=Math.sin(actor.walkClock*Math.PI)*2.6;
+      actor.setY(actor.y+bob*.06);
+      actor.setAngle(Math.sin(actor.walkClock*Math.PI)*1.2*(dir==='left'?-1:1));
+    }else{
+      actor.walkClock=0;
+      actor.setAngle(0);
+    }
+  }
+
+  function addNpc(scene,key,x,y,height){
+    const s=scene.add.image(x,y,key).setDepth(45);
+    const ratio=s.width/s.height;
+    s.setDisplaySize(height*ratio,height);
+    return s;
   }
 
   class Exterior extends Phaser.Scene {
@@ -151,7 +188,16 @@
       this.cameras.main.setBounds(0,0,1600,900);
       this.add.image(800,450,'tap-exterior').setDisplaySize(1600,900).setDepth(-20);
 
-      this.actor=createDevActor(this,820,770);
+      this.add.text(825,240,'TAP AND VINE   @69',{
+        fontFamily:'Arial Black, Impact, sans-serif',
+        fontSize:'46px',
+        color:'#efe6cf',
+        stroke:'#151218',
+        strokeThickness:4,
+        letterSpacing:7
+      }).setOrigin(.5).setDepth(-5).setAngle(-1);
+
+      this.actor=createProductionActor(this,820,770);
 
       const facade=this.add.rectangle(800,295,1600,520,0x000000,0);
       this.physics.add.existing(facade,true);
@@ -193,6 +239,10 @@
       let x=stick.x,y=stick.y;const m=Math.hypot(x,y);
       if(m>.01){x/=Math.max(1,m);y/=Math.max(1,m);}
       this.actor.setVelocity(x*245,y*245);
+      const moving=Math.abs(x)+Math.abs(y)>.05;
+      let dir=this.actor.heroDir||'down';
+      if(moving) dir=Math.abs(x)>Math.abs(y)?(x<0?'left':'right'):(y<0?'up':'down');
+      applyHeroVisual(this.actor,state.hero,dir,moving,dtMs/1000);
       const n=this.nearest();
       if(n){ui.prompt.textContent='ACT · '+n.label;ui.prompt.classList.remove('hidden');}
       else ui.prompt.classList.add('hidden');
@@ -220,8 +270,19 @@
       wall(1020,245,220,150);  // stove/snug furniture
 
       // DEV-only body. Final branch will use approved Rick/Laura production sprites.
-      this.actor=createDevActor(this,860,760);
+      this.actor=createProductionActor(this,860,760);
       this.physics.add.collider(this.actor,this.solids);
+
+      this.willSprite=addNpc(this,'will',520,392,145);
+      this.deniseSprite=addNpc(this,'denise',770,540,148);
+      this.dadSprite=addNpc(this,'dad',1210,582,132);
+
+      this.wristbandVisual=this.add.graphics().setDepth(35);
+      this.wristbandVisual.lineStyle(8,0xff4fa3,1);
+      this.wristbandVisual.strokeCircle(1280,270,16);
+      this.wristbandVisual.lineStyle(3,0xf2c766,1);
+      this.wristbandVisual.strokeCircle(1280,270,10);
+      this.wristbandVisual.setVisible(false);
 
       this.cameras.main.startFollow(this.actor,true,.12,.12);
       this.cameras.main.setZoom(1);
@@ -239,6 +300,8 @@
         this.markers.lineStyle(3,0xff4fa3,.45);
         for(const h of this.hotspots)this.markers.strokeCircle(h.x,h.y,h.r);
       }
+
+      this.wristbandVisual.setVisible([Q.ACCESS_DISPLAY,Q.WRISTBAND].includes(state.quest));
 
       document.body.dataset.v5Ready='true';
       document.body.dataset.scene='tap';
@@ -284,6 +347,7 @@
         say('LAURA',LINES.pickup,()=>{
           state.wristband=true;
           state.quest=Q.RETURN_WILL;
+          this.wristbandVisual?.setVisible(false);
           refreshUI();
           const pulse=this.add.circle(1280,270,22,0xff4fa3,.18).setStrokeStyle(5,0xff4fa3,1).setDepth(70);
           this.tweens.add({targets:pulse,scale:4,alpha:0,duration:420,onComplete:()=>pulse.destroy()});
@@ -298,11 +362,11 @@
     useAbility(){
       if(dialogue)return;
       if(state.hero==='laura'&&state.quest===Q.CALL_BS){
-        say('LAURA',LINES.lauraBs,()=>{state.quest=Q.ACCESS_DISPLAY;refreshUI();});
+        say('LAURA',LINES.lauraBs,()=>{state.quest=Q.ACCESS_DISPLAY;this.wristbandVisual?.setVisible(true);refreshUI();});
         return;
       }
       if(state.hero==='rick'&&state.quest===Q.ACCESS_DISPLAY){
-        say('RICK',LINES.rickBs,()=>{state.access=true;state.quest=Q.WRISTBAND;refreshUI();});
+        say('RICK',LINES.rickBs,()=>{state.access=true;state.quest=Q.WRISTBAND;this.wristbandVisual?.setVisible(true);refreshUI();});
         return;
       }
       const n=this.nearest();
@@ -320,6 +384,7 @@
     swap(){
       if(dialogue)return;
       state.hero=state.hero==='rick'?'laura':'rick';
+      if(this.actor) applyHeroVisual(this.actor,state.hero,this.actor.heroDir||'down',false,0);
       refreshUI();
     }
 
@@ -348,6 +413,10 @@
       const m=Math.hypot(x,y);
       if(m>.01){x/=Math.max(1,m);y/=Math.max(1,m);}
       this.actor.setVelocity(x*speed,y*speed);
+      const moving=Math.abs(x)+Math.abs(y)>.05;
+      let dir=this.actor.heroDir||'down';
+      if(moving) dir=Math.abs(x)>Math.abs(y)?(x<0?'left':'right'):(y<0?'up':'down');
+      applyHeroVisual(this.actor,state.hero,dir,moving,dt);
       const n=this.nearest();
       if(n){ui.prompt.textContent='ACT · '+n.label;ui.prompt.classList.remove('hidden');}
       else ui.prompt.classList.add('hidden');
