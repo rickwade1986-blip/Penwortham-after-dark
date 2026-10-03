@@ -39,6 +39,7 @@
     act:document.getElementById('act'),
     ability:document.getElementById('ability'),
     dialogue:document.getElementById('dialogue'),
+    portrait:document.getElementById('portrait'),
     speaker:document.getElementById('speaker'),
     line:document.getElementById('line'),
     joystick:document.getElementById('joystick'),
@@ -59,9 +60,21 @@
   let dialogue = null;
   const stick = {x:0,y:0};
 
+  function portraitFor(speaker){
+    const s=String(speaker||'').toUpperCase();
+    if(s.includes('LAURA')) return './assets/characters/laura-master.png';
+    if(s.includes('RICK')) return './assets/characters/rick-master.png';
+    if(s==='WILL') return './assets/characters/will.png';
+    if(s==='DENISE') return './assets/characters/denise.png';
+    if(s==='DAD') return './assets/characters/dad.png';
+    return '';
+  }
+
   function say(speaker, lines, done) {
     dialogue={speaker,lines:[...lines],index:0,done:done||null};
     ui.speaker.textContent=speaker;
+    const portrait=portraitFor(speaker);
+    ui.portrait.innerHTML=portrait?'<img alt="" src="'+portrait+'">':'';
     ui.speaker.style.color=speaker==='LAURA'?'#ff4fa3':speaker==='RICK'?'#b6ff3b':'#f2c766';
     ui.line.textContent=dialogue.lines[0]||'';
     ui.dialogue.classList.remove('hidden');
@@ -164,9 +177,7 @@
 
     if(moving){
       actor.walkClock=(actor.walkClock||0)+dt*10;
-      const bob=Math.sin(actor.walkClock*Math.PI)*2.6;
-      actor.setY(actor.y+bob*.06);
-      actor.setAngle(Math.sin(actor.walkClock*Math.PI)*1.2*(dir==='left'?-1:1));
+      actor.setAngle(Math.sin(actor.walkClock*Math.PI)*1.15*(dir==='left'?-1:1));
     }else{
       actor.walkClock=0;
       actor.setAngle(0);
