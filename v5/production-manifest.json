@@ -1,0 +1,50 @@
+{
+  "version": "5.0.0-production",
+  "slice": "tap-and-vine",
+  "status": "asset-production",
+  "legacyAssetsAllowed": false,
+  "visualTarget": "approved comic / graphic-novel concept",
+  "scene": {
+    "camera": "3/4 top-down",
+    "playerCharacters": [
+      "rick",
+      "laura"
+    ],
+    "npcs": [
+      "will",
+      "denise",
+      "dad"
+    ],
+    "interactionChain": [
+      "enter_tap",
+      "talk_to_will",
+      "laura_call_bs",
+      "rick_bullshit",
+      "recover_kendal_wristband",
+      "return_to_will",
+      "recover_glasses",
+      "denise_sauvignon",
+      "fats_teaser"
+    ]
+  },
+  "assets": {
+    "rickMaster": "in-review",
+    "lauraMaster": "in-review",
+    "tapEnvironment": "in-review",
+    "willMaster": "needed",
+    "deniseMaster": "needed",
+    "dadMaster": "needed",
+    "wristbandProp": "needed",
+    "hud": "needed"
+  },
+  "releaseGate": [
+    "iphone-readable-character-silhouettes",
+    "tap-art-matches-concept-bar",
+    "smooth-mobile-movement",
+    "both-abilities-used-meaningfully",
+    "no-soft-locks",
+    "visible-interaction-feedback",
+    "idle-room-feels-alive",
+    "exact-build-mobile-smoke-pass"
+  ]
+}
