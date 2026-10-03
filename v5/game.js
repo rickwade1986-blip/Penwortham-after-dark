@@ -516,7 +516,7 @@
       this.actor.setPosition(490,555); this.onWill(); finishDialogue();
       this.actor.setPosition(555,560); this.takeGlasses(); finishDialogue();
       this.actor.setPosition(1045,590); this.onDenise(); finishDialogue();
-      finishDialogue();
+      if(state.quest===Q.FATS_TEASER){ this.playFatsTeaser(); finishDialogue(); }
       document.body.dataset.v5AutoTest=state.quest+':wristband='+state.wristband+':access='+state.access+':glasses='+state.glasses+':wine='+state.sauvignon;
     }
 
