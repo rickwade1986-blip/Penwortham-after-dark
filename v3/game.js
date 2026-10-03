@@ -178,8 +178,8 @@
       laura:['Milk.','Rick: Look at us. Functioning adults.','Laura: Do not push it.']
     },
     will:{
-      rick:["Will: When you're in the Tap, you're a pub.","Rick: That's still not a sentence, Will.","Will: It doesn't need to be."],
-      laura:["Will: When you're in the Tap, you're a pub.","Laura: Will, what the fuck does that mean?",'Will: Exactly.']
+      rick:['Will: You two actually found the car then?','Rick: Never in doubt.','Will: Laura text me twenty minutes ago saying you were looking for it.'],
+      laura:['Will: He found the car then?','Laura: Eventually.','Will: Strong opening to the evening.']
     },
     denise:{
       rick:['Denise: Kendal again next year then?',"Rick: Apparently I've already agreed.","Denise: You have now."],
@@ -494,7 +494,7 @@
         id:'denise',x:1020,y:610,r:135,label:'DENISE',
         act:()=>{
           if(state.quest===Q.WILL&&!state.flags.will){
-            say('DENISE',['Speak to Will first.','He has been dying to say the pub thing.']);
+            say('DENISE',['Speak to Will first.','He has been watching you two wander about through the window.']);
             return;
           }
           say('DENISE',D.denise[state.hero],()=>{
