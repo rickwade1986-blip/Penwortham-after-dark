@@ -229,13 +229,18 @@
     return hero+'-down';
   }
 
+  function heroSize(hero){
+    return hero==='laura' ? {w:92,h:138} : {w:88,h:132};
+  }
+
   function createActor(scene,x,y){
     const actor=scene.physics.add.sprite(x,y,heroTexture(state.hero,'down')).setDepth(80).setCollideWorldBounds(true);
     actor.heroDir='down';
     actor.walkClock=0;
-    actor.setDisplaySize(state.hero==='laura'?118:112,168);
-    actor.body.setSize(actor.width*.38,actor.height*.17,true);
-    actor.body.setOffset(actor.width*.31,actor.height*.78);
+    const size=heroSize(state.hero);
+    actor.setDisplaySize(size.w,size.h);
+    actor.body.setSize(actor.width*.34,actor.height*.16,true);
+    actor.body.setOffset(actor.width*.33,actor.height*.80);
     return actor;
   }
 
@@ -244,7 +249,8 @@
     if(actor.texture.key!==key)actor.setTexture(key);
     actor.setFlipX(dir==='left');
     actor.heroDir=dir;
-    actor.setDisplaySize(hero==='laura'?118:112,168);
+    const size=heroSize(hero);
+    actor.setDisplaySize(size.w,size.h);
     if(moving){
       actor.walkClock=(actor.walkClock||0)+dt*9;
       actor.setAngle(Math.sin(actor.walkClock*Math.PI)*.85);
@@ -294,9 +300,9 @@
       wall(1260,140,340,390);
       wall(760,385,250,180);
 
-      this.will=npc(this,'will',430,515,154);
-      this.denise=npc(this,'denise',1045,540,160);
-      this.dad=npc(this,'dad',1190,690,145);
+      this.will=npc(this,'will',430,515,128);
+      this.denise=npc(this,'denise',1045,540,132);
+      this.dad=npc(this,'dad',1190,690,120);
 
       this.display=this.add.image(1370,225,'kendal').setDisplaySize(215,215).setDepth(10);
       this.display.setTint(0xe8d8c3);
@@ -319,8 +325,14 @@
         {id:'glasses',x:555,y:560,r:105,label:'YOUR GLASSES',enabled:()=>state.quest===Q.PICK_GLASSES,act:()=>this.takeGlasses()}
       ];
 
-      this.cameras.main.startFollow(this.actor,true,.09,.09);
-      this.cameras.main.setZoom(.92);
+      // The Tap is a single illustrated room. Keep the whole composition readable
+      // instead of following the player and turning the concept art into a crop.
+      this.cameras.main.stopFollow();
+      this.cameras.main.setZoom(1);
+      this.cameras.main.centerOn(800,450);
+      this.cameras.main.setRoundPixels(false);
+
+      this.addRoomLife();
 
       document.body.dataset.v5Ready='true';
       document.body.dataset.v5Scene='tap';
@@ -329,6 +341,15 @@
       refreshUI();
 
       if(AUTOTEST==='quest-chain')this.runAutotest();
+    }
+
+    addRoomLife(){
+      // Tiny movement keeps the pub alive without making NPCs drift away from hotspots.
+      this.tweens.add({targets:this.will,y:this.will.y-3,duration:1450,yoyo:true,repeat:-1,ease:'Sine.easeInOut'});
+      this.tweens.add({targets:this.denise,angle:{from:-.5,to:.5},duration:1900,yoyo:true,repeat:-1,ease:'Sine.easeInOut'});
+      this.tweens.add({targets:this.dad,y:this.dad.y-2,duration:2100,yoyo:true,repeat:-1,ease:'Sine.easeInOut'});
+      const glow=this.add.rectangle(845,150,540,8,0xf2c766,.10).setDepth(-38);
+      this.tweens.add({targets:glow,alpha:{from:.04,to:.16},duration:1800,yoyo:true,repeat:-1,ease:'Sine.easeInOut'});
     }
 
     pulse(target,color){
