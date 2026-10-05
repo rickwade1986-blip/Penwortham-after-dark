@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+  <meta name="theme-color" content="#090b10">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <title>Penwortham After Dark — V5 Production Slice</title>
+  <link rel="stylesheet" href="./style.css">
+</head>
+<body>
+  <main id="app">
+    <div id="game"></div>
+
+    <header id="hud">
+      <div class="brand">PENWORTHAM <b>AFTER DARK</b></div>
+      <div class="quest">
+        <span>OBJECTIVE</span>
+        <strong id="objective">Talk to Will</strong>
+      </div>
+      <div class="hero">
+        <strong id="heroName">RICK</strong>
+        <span id="hearts">♥♥♥♥♥♥</span>
+      </div>
+    </header>
+
+    <div id="prompt" class="hidden"></div>
+    <div id="inventory" aria-label="Inventory"></div>
+    <div id="toast" class="hidden"></div>
+
+    <div id="controls">
+      <button id="swap" type="button">SWAP</button>
+      <button id="act" type="button">ACT</button>
+      <button id="ability" type="button">BULLSHIT</button>
+    </div>
+
+    <div id="joystick" class="hidden"><div id="knob"></div></div>
+    <div id="moveGhost"><i></i><small>MOVE</small></div>
+
+    <section id="dialogue" class="hidden">
+      <div id="portrait"></div>
+      <div class="dialogueCopy">
+        <div id="speaker"></div>
+        <div id="line"></div>
+        <div id="advance">ACT ›</div>
+      </div>
+    </section>
+
+    <section id="endcard" class="hidden">
+      <div class="endInner">
+        <span>VERTICAL SLICE COMPLETE</span>
+        <h2>FATS<br>IS OUTSIDE.</h2>
+        <p>The roast situation has escalated.</p>
+        <button type="button" onclick="location.reload()">PLAY IT AGAIN</button>
+      </div>
+    </section>
+
+    <div id="rotate"><div>↻</div><strong>landscape, behbeh</strong></div>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/phaser@3.90.0/dist/phaser.min.js"></script>
+  <script src="./game.js"></script>
+</body>
+</html>
