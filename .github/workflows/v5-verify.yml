@@ -2,7 +2,7 @@ name: Verify V5 production slice
 
 on:
   push:
-    branches: ["v5-production"]
+    branches: ["v5-production", "v6-gameplay"]
     paths:
       - "v5/**"
       - ".github/workflows/v5-verify.yml"
@@ -63,6 +63,15 @@ jobs:
           grep -q 'data-v5-auto-test="COMPLETE:wristband=true:access=true:glasses=true:wine=true"' chain.html
           ! grep -q 'data-v5-error=' chain.html
 
+      - name: Navigation / collision regression
+        run: |
+          CHROME="$(which google-chrome || which chromium || which chromium-browser)"
+          FLAGS="--headless=new --no-sandbox --disable-gpu --enable-unsafe-swiftshader --disable-dev-shm-usage --virtual-time-budget=9000"
+
+          "$CHROME" $FLAGS --dump-dom "http://127.0.0.1:8000/v5/index.html?reset=1&autotest=nav" > nav.html
+          grep -q 'data-v5-nav-test="PASS:' nav.html
+          ! grep -q 'data-v5-error=' nav.html
+
       - name: Capture production screenshot
         if: always()
         run: |
@@ -77,4 +86,5 @@ jobs:
             v5-tap.png
             smoke.html
             chain.html
+            nav.html
           retention-days: 3
