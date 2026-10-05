@@ -230,17 +230,75 @@
   }
 
   function heroSize(hero){
-    return hero==='laura' ? {w:92,h:138} : {w:88,h:132};
+    return hero==='laura' ? {w:122,h:184} : {w:118,h:178};
+  }
+
+  function perspectiveAt(y){
+    return Phaser.Math.Clamp(Phaser.Math.Linear(.72,1.06,(y-155)/(855-155)),.70,1.08);
+  }
+
+  const NAV = {
+    rects:[
+      // fireplace / back-right furniture mass
+      {x:900,y:145,w:390,h:300},
+      // rear wall / inaccessible upper-right corner
+      {x:1285,y:145,w:285,h:315}
+    ],
+    circles:[
+      // bar stools
+      {x:620,y:330,r:48},{x:610,y:455,r:54},{x:565,y:575,r:52},{x:505,y:705,r:52},
+      // main table + chairs
+      {x:1115,y:645,r:156},{x:1290,y:555,r:58},{x:1360,y:700,r:62},
+      // foreground stool/chair
+      {x:1015,y:835,r:74}
+    ],
+    bar:[
+      {x:0,y:0},{x:700,y:0},{x:700,y:285},{x:430,y:625},{x:0,y:625}
+    ]
+  };
+
+  function pointInPoly(x,y,poly){
+    let inside=false;
+    for(let i=0,j=poly.length-1;i<poly.length;j=i++){
+      const a=poly[i],b=poly[j];
+      if(((a.y>y)!==(b.y>y)) && x<(b.x-a.x)*(y-a.y)/(b.y-a.y)+a.x) inside=!inside;
+    }
+    return inside;
+  }
+
+  function hitRect(x,y,r,o){
+    const cx=Phaser.Math.Clamp(x,o.x,o.x+o.w);
+    const cy=Phaser.Math.Clamp(y,o.y,o.y+o.h);
+    return Phaser.Math.Distance.Squared(x,y,cx,cy)<r*r;
+  }
+
+  function canStand(scene,x,y,r=23){
+    if(x<365||x>1515||y<165||y>855)return false;
+    if(pointInPoly(x,y,NAV.bar))return false;
+    if(NAV.rects.some(o=>hitRect(x,y,r,o)))return false;
+    if(NAV.circles.some(o=>Phaser.Math.Distance.Squared(x,y,o.x,o.y)<(r+o.r)*(r+o.r)))return false;
+    if(scene){
+      for(const n of [scene.will,scene.denise,scene.dad]){
+        if(!n)continue;
+        const fx=n.x,fy=n.y;
+        if(Phaser.Math.Distance.Squared(x,y,fx,fy)<(r+34)*(r+34))return false;
+      }
+    }
+    return true;
   }
 
   function createActor(scene,x,y){
-    const actor=scene.physics.add.sprite(x,y,heroTexture(state.hero,'down')).setDepth(80).setCollideWorldBounds(true);
+    const actor=scene.physics.add.sprite(x,y,heroTexture(state.hero,'down')).setDepth(80);
+    actor.setOrigin(.5,.93);
     actor.heroDir='down';
     actor.walkClock=0;
-    const size=heroSize(state.hero);
-    actor.setDisplaySize(size.w,size.h);
-    actor.body.setSize(actor.width*.34,actor.height*.16,true);
-    actor.body.setOffset(actor.width*.33,actor.height*.80);
+    actor.stepMark=0;
+    const size=heroSize(state.hero),p=perspectiveAt(y);
+    actor.setDisplaySize(size.w*p,size.h*p);
+    actor.body.setAllowGravity(false);
+    actor.body.setSize(actor.width*.30,actor.height*.10,true);
+    actor.body.setOffset(actor.width*.35,actor.height*.86);
+    actor.shadow=scene.add.ellipse(x,y+3,56*p,18*p,0x000000,.34).setDepth(70);
     return actor;
   }
 
@@ -249,22 +307,30 @@
     if(actor.texture.key!==key)actor.setTexture(key);
     actor.setFlipX(dir==='left');
     actor.heroDir=dir;
+
     const size=heroSize(hero);
-    actor.setDisplaySize(size.w,size.h);
-    if(moving){
-      actor.walkClock=(actor.walkClock||0)+dt*9;
-      actor.setAngle(Math.sin(actor.walkClock*Math.PI)*.85);
-      actor.setScale(actor.scaleX,Math.abs(actor.scaleY)*(1+Math.sin(actor.walkClock*Math.PI*2)*.008));
-    }else{
-      actor.walkClock=0;
-      actor.setAngle(0);
+    const p=perspectiveAt(actor.y);
+    actor.walkClock=moving?(actor.walkClock||0)+dt*2.7:0;
+    const step=Math.sin(actor.walkClock*Math.PI*2);
+    const compression=moving?1-Math.abs(step)*.018:1;
+    const widen=moving?1+Math.abs(step)*.012:1;
+    actor.setDisplaySize(size.w*p*widen,size.h*p*compression);
+    actor.setAngle(moving?step*1.1:0);
+    actor.setDepth(80+actor.y*.02);
+
+    if(actor.shadow){
+      actor.shadow.setPosition(actor.x,actor.y+3);
+      actor.shadow.setDisplaySize(56*p*(moving?1-Math.abs(step)*.08:1),18*p);
+      actor.shadow.setDepth(actor.depth-1);
     }
   }
 
   function npc(scene,key,x,y,height){
-    const s=scene.add.image(x,y,key).setDepth(65);
+    const s=scene.add.image(x,y,key).setOrigin(.5,.93).setDepth(65+y*.02);
     const ratio=s.width/s.height;
-    s.setDisplaySize(height*ratio,height);
+    const p=perspectiveAt(y);
+    s.setDisplaySize(height*ratio*p,height*p);
+    s.shadow=scene.add.ellipse(x,y+2,48*p,15*p,0x000000,.28).setDepth(s.depth-1);
     return s;
   }
 
@@ -277,32 +343,19 @@
       this.cameras.main.setBounds(0,0,1600,900);
       this.add.image(800,450,'tap-bg').setDisplaySize(1600,900).setDepth(-50);
 
-      // A dark vignette lets the illustrated practical lighting do the work without
-      // covering the playable centre of the room.
+      // The artwork is scenery; gameplay collision is mapped to the visible room
+      // instead of four giant invisible rectangles.
       const vignette=this.add.graphics().setDepth(-40);
       vignette.fillStyle(0x06070b,.18);
       vignette.fillRect(0,0,1600,80);
       vignette.fillRect(0,820,1600,80);
 
-      this.solids=[];
-      const wall=(x,y,w,h)=>{
-        const r=this.add.rectangle(x,y,w,h,0x000000,0);
-        this.physics.add.existing(r,true);
-        this.solids.push(r);
-        this.physics.add.collider(this.actor,r);
-      };
-
       this.actor=createActor(this,780,790);
+      this.will=npc(this,'will',455,535,165);
+      this.denise=npc(this,'denise',1030,555,168);
+      this.dad=npc(this,'dad',1185,715,158);
 
-      // Bar occupies the left/top; stove and table occupy right side.
-      wall(0,0,520,565);
-      wall(520,0,1080,140);
-      wall(1260,140,340,390);
-      wall(760,385,250,180);
-
-      this.will=npc(this,'will',430,515,128);
-      this.denise=npc(this,'denise',1045,540,132);
-      this.dad=npc(this,'dad',1190,690,120);
+      if(P.get('nav')==='1')this.drawNavDebug();
 
       this.display=this.add.image(1370,225,'kendal').setDisplaySize(215,215).setDepth(10);
       this.display.setTint(0xe8d8c3);
@@ -343,11 +396,22 @@
       if(AUTOTEST==='quest-chain')this.runAutotest();
     }
 
+    drawNavDebug(){
+      const g=this.add.graphics().setDepth(2000);
+      g.lineStyle(3,0xff4fa3,.85);
+      g.fillStyle(0xff4fa3,.16);
+      g.beginPath();
+      NAV.bar.forEach((p,i)=>i?g.lineTo(p.x,p.y):g.moveTo(p.x,p.y));
+      g.closePath();g.fillPath();g.strokePath();
+      for(const o of NAV.rects){g.fillRect(o.x,o.y,o.w,o.h);g.strokeRect(o.x,o.y,o.w,o.h);}
+      for(const o of NAV.circles){g.fillCircle(o.x,o.y,o.r);g.strokeCircle(o.x,o.y,o.r);}
+    }
+
     addRoomLife(){
-      // Tiny movement keeps the pub alive without making NPCs drift away from hotspots.
-      this.tweens.add({targets:this.will,y:this.will.y-3,duration:1450,yoyo:true,repeat:-1,ease:'Sine.easeInOut'});
-      this.tweens.add({targets:this.denise,angle:{from:-.5,to:.5},duration:1900,yoyo:true,repeat:-1,ease:'Sine.easeInOut'});
-      this.tweens.add({targets:this.dad,y:this.dad.y-2,duration:2100,yoyo:true,repeat:-1,ease:'Sine.easeInOut'});
+      // Life stays centred on each NPC's feet. No bobbing bodies up and down.
+      this.tweens.add({targets:this.will,angle:{from:-.35,to:.35},duration:1800,yoyo:true,repeat:-1,ease:'Sine.easeInOut'});
+      this.tweens.add({targets:this.denise,angle:{from:-.45,to:.45},duration:2100,yoyo:true,repeat:-1,ease:'Sine.easeInOut'});
+      this.tweens.add({targets:this.dad,angle:{from:-.25,to:.25},duration:2400,yoyo:true,repeat:-1,ease:'Sine.easeInOut'});
       const glow=this.add.rectangle(845,150,540,8,0xf2c766,.10).setDepth(-38);
       this.tweens.add({targets:glow,alpha:{from:.04,to:.16},duration:1800,yoyo:true,repeat:-1,ease:'Sine.easeInOut'});
     }
@@ -547,16 +611,23 @@
       let x=stick.x,y=stick.y;
       const m=Math.hypot(x,y);
       if(m>.01){x/=Math.max(1,m);y/=Math.max(1,m);}
-      this.actor.setVelocity(x*235,y*235);
       const moving=Math.abs(x)+Math.abs(y)>.05;
       let dir=this.actor.heroDir||'down';
       if(moving)dir=Math.abs(x)>Math.abs(y)?(x<0?'left':'right'):(y<0?'up':'down');
-      applyHero(this.actor,state.hero,dir,moving,dt);
 
-      this.actor.setDepth(80+this.actor.y*.01);
-      this.will.setDepth(65+this.will.y*.01);
-      this.denise.setDepth(65+this.denise.y*.01);
-      this.dad.setDepth(65+this.dad.y*.01);
+      // Manual foot-point navigation gives collision that matches the illustration.
+      // Resolve X/Y separately so the player naturally slides along furniture.
+      if(moving){
+        const speed=232;
+        const dx=x*speed*dt,dy=y*speed*dt;
+        const nx=this.actor.x+dx;
+        if(canStand(this,nx,this.actor.y))this.actor.x=nx;
+        const ny=this.actor.y+dy;
+        if(canStand(this,this.actor.x,ny))this.actor.y=ny;
+        this.actor.body.reset(this.actor.x,this.actor.y);
+      }else this.actor.setVelocity(0,0);
+
+      applyHero(this.actor,state.hero,dir,moving,dt);
 
       const n=this.nearest();
       if(n){
