@@ -248,7 +248,7 @@
       // bar stools
       {x:620,y:330,r:48},{x:610,y:455,r:54},{x:565,y:575,r:52},{x:505,y:705,r:52},
       // main table + chairs
-      {x:1115,y:645,r:156},{x:1290,y:555,r:58},{x:1360,y:700,r:62},
+      {x:1115,y:645,r:82},{x:1290,y:555,r:58},{x:1360,y:700,r:62},
       // foreground stool/chair
       {x:1015,y:835,r:74}
     ],
@@ -394,6 +394,7 @@
       refreshUI();
 
       if(AUTOTEST==='quest-chain')this.runAutotest();
+      if(AUTOTEST==='nav')this.runNavAutotest();
     }
 
     drawNavDebug(){
@@ -589,6 +590,34 @@
       applyHero(this.actor,state.hero,this.actor.heroDir||'down',false,0);
       save();
       showToast(state.hero==='rick'?'RICK IN':'LAURA IN',450);
+    }
+
+    hotspotReachable(id){
+      const h=this.hotspots.find(x=>x.id===id);
+      if(!h)return false;
+      for(let radius=42;radius<=Math.max(48,h.r-8);radius+=18){
+        for(let deg=0;deg<360;deg+=15){
+          const a=Phaser.Math.DegToRad(deg);
+          if(canStand(this,h.x+Math.cos(a)*radius,h.y+Math.sin(a)*radius))return true;
+        }
+      }
+      return false;
+    }
+
+    runNavAutotest(){
+      const checks={
+        spawn:canStand(this,780,790),
+        barBlocked:!canStand(this,240,500),
+        tableBlocked:!canStand(this,1115,645),
+        fireplaceBlocked:!canStand(this,1010,300),
+        will:this.hotspotReachable('will'),
+        denise:this.hotspotReachable('denise'),
+        dad:this.hotspotReachable('dad'),
+        display:this.hotspotReachable('display'),
+        glasses:this.hotspotReachable('glasses')
+      };
+      const pass=Object.values(checks).every(Boolean);
+      document.body.dataset.v5NavTest=(pass?'PASS':'FAIL')+':'+Object.entries(checks).map(([k,v])=>k+'='+v).join(',');
     }
 
     runAutotest(){
