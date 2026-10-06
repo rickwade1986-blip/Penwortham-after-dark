@@ -2,7 +2,7 @@ name: Verify V5 production slice
 
 on:
   push:
-    branches: ["main", "v5-production", "v5-movement-collision"]
+    branches: ["main", "v5-production", "v5-movement-collision", "v5-visible-walk"]
     paths:
       - "v5/**"
       - ".github/workflows/v5-verify.yml"
@@ -58,6 +58,8 @@ jobs:
           grep -q 'data-v5-assets="production"' smoke.html
           grep -q 'data-v5-hotspots="will,denise,dad,display,glasses"' smoke.html
           grep -q 'data-v5-grounded-sprites="true"' smoke.html
+          grep -q 'data-v5-layered-walker="true"' smoke.html
+          grep -q 'data-v5-depth-occlusion="true"' smoke.html
           grep -q 'data-v5-collision-count="20"' smoke.html
           ! grep -q 'data-v5-error=' smoke.html
 
@@ -78,6 +80,7 @@ jobs:
           "$CHROME" $FLAGS --dump-dom "http://127.0.0.1:8000/v5/index.html?reset=1&autotest=collision-map" > collision.html
           grep -q 'data-v5-collision-test="pass"' collision.html
           grep -q 'data-v5-walk-motion="pass"' collision.html
+          grep -q 'data-v5-layered-walker="true"' collision.html
           ! grep -q 'data-v5-error=' collision.html
 
       - name: Capture production screenshot
