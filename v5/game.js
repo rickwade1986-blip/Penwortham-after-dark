@@ -240,6 +240,7 @@
   function createActor(scene,x,y){
     const actor=scene.add.rectangle(x,y,44,26,0x00ff66,DEBUG ? .22 : 0);
     scene.physics.add.existing(actor);
+    actor.body.setSize(44,26,true);
     actor.body.setCollideWorldBounds(true);
     actor.body.setDrag(900,900);
     actor.setVelocity=(vx,vy)=>{actor.body.setVelocity(vx,vy);return actor;};
@@ -334,9 +335,12 @@
         const r=this.add.rectangle(x,y,w,h,DEBUG?0xff3b7a:0x000000,DEBUG ? .16 : 0);
         if(DEBUG)r.setStrokeStyle(2,0xff7bad,.85);
         this.physics.add.existing(r,true);
+        r.body.setSize(w,h,true);
         r.collisionLabel=label;
         this.solids.push(r);
-        this.physics.add.collider(this.actor,r);
+        this.physics.add.collider(this.actor,r,()=>{
+          this.actor.lastCollision=label;
+        });
         return r;
       };
 
@@ -422,6 +426,7 @@
       if(AUTOTEST==='quest-chain')this.runAutotest();
       if(AUTOTEST==='collision-map'){
         this.collisionProbe={started:0};
+        this.actor.lastCollision='';
         this.actor.setPosition(520,860);
       }
     }
@@ -639,10 +644,12 @@
       if(this.collisionProbe){
         if(!this.collisionProbe.started)this.collisionProbe.started=time;
         if(time-this.collisionProbe.started>850){
-          const pass=this.actor.x>=468&&this.actor.x<=482;
+          const collisionName=this.actor.lastCollision||'none';
+          const pass=collisionName==='bar front' && this.actor.x<520 && this.actor.x>445;
           const walked=(this.actor.walkClock||0)>.25 && this.actor.visual.texture.key==='rick-side';
           this.actor.body.setVelocity(0,0);
-          document.body.dataset.v5CollisionTest=pass?'pass':'fail:'+Math.round(this.actor.x);
+          document.body.dataset.v5CollisionTest=pass?'pass':'fail:'+collisionName+':'+Math.round(this.actor.x);
+          document.body.dataset.v5CollisionBody=Math.round(this.actor.body.width)+'x'+Math.round(this.actor.body.height);
           document.body.dataset.v5WalkMotion=walked?'pass':'fail:'+(this.actor.visual.texture.key||'none')+':'+(this.actor.walkClock||0).toFixed(2);
           this.collisionProbe=null;
         }
