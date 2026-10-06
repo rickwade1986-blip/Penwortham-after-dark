@@ -89,6 +89,7 @@ jobs:
           CHROME="$(which google-chrome || which chromium || which chromium-browser)"
           timeout 70s "$CHROME" --headless=new --no-sandbox --disable-gpu --enable-unsafe-swiftshader --disable-dev-shm-usage --window-size=1600,900 --virtual-time-budget=8000 --screenshot=v5-tap.png "http://127.0.0.1:8000/v5/index.html?reset=1" || true
           timeout 70s "$CHROME" --headless=new --no-sandbox --disable-gpu --enable-unsafe-swiftshader --disable-dev-shm-usage --window-size=1600,900 --virtual-time-budget=5000 --screenshot=v5-collision-debug.png "http://127.0.0.1:8000/v5/index.html?reset=1&debug=1" || true
+          timeout 70s "$CHROME" --headless=new --no-sandbox --disable-gpu --enable-unsafe-swiftshader --disable-dev-shm-usage --window-size=1600,900 --virtual-time-budget=2500 --screenshot=v5-walk-showcase.png "http://127.0.0.1:8000/v5/index.html?reset=1&autotest=walk-showcase" || true
 
       - uses: actions/upload-artifact@v4
         if: always()
@@ -100,4 +101,5 @@ jobs:
             chain.html
             collision.html
             v5-collision-debug.png
+            v5-walk-showcase.png
           retention-days: 3
