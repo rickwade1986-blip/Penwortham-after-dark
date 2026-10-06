@@ -70,11 +70,21 @@ jobs:
           grep -q 'data-v5-auto-test="COMPLETE:wristband=true:access=true:glasses=true:wine=true"' chain.html
           ! grep -q 'data-v5-error=' chain.html
 
+      - name: Physical collision regression
+        run: |
+          CHROME="$(which google-chrome || which chromium || which chromium-browser)"
+          FLAGS="--headless=new --no-sandbox --disable-gpu --enable-unsafe-swiftshader --disable-dev-shm-usage --virtual-time-budget=5000"
+
+          "$CHROME" $FLAGS --dump-dom "http://127.0.0.1:8000/v5/index.html?reset=1&autotest=collision-map" > collision.html
+          grep -q 'data-v5-collision-test="pass"' collision.html
+          ! grep -q 'data-v5-error=' collision.html
+
       - name: Capture production screenshot
         if: always()
         run: |
           CHROME="$(which google-chrome || which chromium || which chromium-browser)"
-          "$CHROME" --headless=new --no-sandbox --disable-gpu --enable-unsafe-swiftshader --disable-dev-shm-usage --window-size=1600,900 --virtual-time-budget=8000 --screenshot=v5-tap.png "http://127.0.0.1:8000/v5/index.html?reset=1" || true
+          timeout 30s "$CHROME" --headless=new --no-sandbox --disable-gpu --enable-unsafe-swiftshader --disable-dev-shm-usage --window-size=1600,900 --virtual-time-budget=8000 --screenshot=v5-tap.png "http://127.0.0.1:8000/v5/index.html?reset=1" || true
+          timeout 30s "$CHROME" --headless=new --no-sandbox --disable-gpu --enable-unsafe-swiftshader --disable-dev-shm-usage --window-size=1600,900 --virtual-time-budget=5000 --screenshot=v5-collision-debug.png "http://127.0.0.1:8000/v5/index.html?reset=1&debug=1" || true
 
       - uses: actions/upload-artifact@v4
         if: always()
@@ -84,4 +94,6 @@ jobs:
             v5-tap.png
             smoke.html
             chain.html
+            collision.html
+            v5-collision-debug.png
           retention-days: 3
