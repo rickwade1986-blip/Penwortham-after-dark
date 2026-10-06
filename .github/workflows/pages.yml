@@ -1,11 +1,6 @@
 name: Deploy Penwortham After Dark
 
 on:
-  push:
-    branches: ["main"]
-    paths:
-      - "v5/**"
-      - ".github/workflows/pages.yml"
   workflow_dispatch:
 
 permissions:
