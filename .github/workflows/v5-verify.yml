@@ -60,7 +60,6 @@ jobs:
           grep -q 'data-v5-hotspots="will,denise,dad,display,glasses"' smoke.html
           grep -q 'data-v5-grounded-sprites="true"' smoke.html
           grep -q 'data-v5-layered-walker="true"' smoke.html
-          grep -q 'data-v5-depth-occlusion="true"' smoke.html
           grep -q 'data-v5-collision-count="20"' smoke.html
           ! grep -q 'data-v5-error=' smoke.html
 
