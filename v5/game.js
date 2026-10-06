@@ -240,13 +240,14 @@
   function createActor(scene,x,y){
     const actor=scene.add.rectangle(x,y,44,26,0x00ff66,DEBUG ? .22 : 0);
     scene.physics.add.existing(actor);
+    actor.body.setSize(44,26,true);
     actor.body.setCollideWorldBounds(true);
     actor.body.setDrag(900,900);
     actor.setVelocity=(vx,vy)=>{actor.body.setVelocity(vx,vy);return actor;};
     actor.heroDir='down';
     actor.walkClock=0;
 
-    actor.shadow=scene.add.ellipse(x,y+5,54,16,0x000000,.34).setDepth(70);
+    actor.shadow=scene.add.ellipse(x,y+5,50,12,0x000000,.46).setDepth(70);
     actor.visual=scene.add.image(x,y+4,heroTexture(state.hero,'down')).setOrigin(.5,1).setDepth(80);
     applyHero(actor,state.hero,'down',false,0);
     return actor;
@@ -262,6 +263,7 @@
     const size=heroSize(hero);
     let bob=0,sway=0,lean=0,squash=0;
     if(moving){
+      actor.idleClock=0;
       actor.walkClock=(actor.walkClock||0)+dt*6.8;
       const phase=actor.walkClock*Math.PI*2;
       bob=Math.abs(Math.sin(phase))*6.2;
@@ -270,14 +272,18 @@
       squash=Math.sin(phase*2)*.018;
     }else{
       actor.walkClock=0;
+      actor.idleClock=(actor.idleClock||0)+dt;
+      const idle=Math.sin(actor.idleClock*2.15);
+      bob=idle*.75;
+      squash=idle*.0035;
     }
 
     visual.setPosition(actor.x+sway,actor.y+4-bob+(moving&&Math.sin(actor.walkClock*Math.PI*4)>.82?1.8:0));
     visual.setAngle(lean);
     visual.setDisplaySize(size.w*(1-squash*.35),size.h*(1+squash));
     actor.shadow.setPosition(actor.x,actor.y+6);
-    actor.shadow.setDisplaySize(54+(moving?Math.abs(Math.sin(actor.walkClock*Math.PI*2))*5:0),16-(moving?2:0));
-    actor.shadow.setAlpha(moving ? .27 : .34);
+    actor.shadow.setDisplaySize(50+(moving?Math.abs(Math.sin(actor.walkClock*Math.PI*2))*6:0),12-(moving?1.5:0));
+    actor.shadow.setAlpha(moving ? .39 : .46);
   }
 
   function npc(scene,key,x,y,height,phase=0){
@@ -289,7 +295,7 @@
     s.baseW=s.displayWidth;
     s.baseH=s.displayHeight;
     s.idlePhase=phase;
-    s.shadow=scene.add.ellipse(x,y+5,Math.max(44,s.displayWidth*.58),14,0x000000,.28);
+    s.shadow=scene.add.ellipse(x,y+5,Math.max(42,s.displayWidth*.54),11,0x000000,.38);
     s.shadow.setDepth(80+y*.01-.04);
     s.setDepth(80+y*.01);
     return s;
@@ -329,9 +335,12 @@
         const r=this.add.rectangle(x,y,w,h,DEBUG?0xff3b7a:0x000000,DEBUG ? .16 : 0);
         if(DEBUG)r.setStrokeStyle(2,0xff7bad,.85);
         this.physics.add.existing(r,true);
+        r.body.setSize(w,h,true);
         r.collisionLabel=label;
         this.solids.push(r);
-        this.physics.add.collider(this.actor,r);
+        this.physics.add.collider(this.actor,r,()=>{
+          this.actor.lastCollision=label;
+        });
         return r;
       };
 
@@ -416,8 +425,9 @@
 
       if(AUTOTEST==='quest-chain')this.runAutotest();
       if(AUTOTEST==='collision-map'){
-        this.collisionProbe={started:0};
-        this.actor.setPosition(520,780);
+        this.collisionProbe={frames:0};
+        this.actor.lastCollision='';
+        this.actor.setPosition(520,860);
       }
     }
 
@@ -632,11 +642,19 @@
       applyHero(this.actor,state.hero,dir,moving,dt);
 
       if(this.collisionProbe){
-        if(!this.collisionProbe.started)this.collisionProbe.started=time;
-        if(time-this.collisionProbe.started>850){
-          const pass=this.actor.x>=468&&this.actor.x<=482;
+        this.collisionProbe.frames++;
+        const collisionName=this.actor.lastCollision||'none';
+        const hitBar=collisionName==='bar front';
+        const escapedPastBar=this.actor.x<430;
+        const timedOut=this.collisionProbe.frames>360;
+        if(hitBar||escapedPastBar||timedOut){
+          const pass=hitBar && this.actor.x<520 && this.actor.x>445;
+          const walked=(this.actor.walkClock||0)>.25 && this.actor.visual.texture.key==='rick-side';
           this.actor.body.setVelocity(0,0);
-          document.body.dataset.v5CollisionTest=pass?'pass':'fail:'+Math.round(this.actor.x);
+          document.body.dataset.v5CollisionTest=pass?'pass':'fail:'+collisionName+':'+Math.round(this.actor.x);
+          document.body.dataset.v5CollisionBody=Math.round(this.actor.body.width)+'x'+Math.round(this.actor.body.height);
+          document.body.dataset.v5CollisionFrames=String(this.collisionProbe.frames);
+          document.body.dataset.v5WalkMotion=walked?'pass':'fail:'+(this.actor.visual.texture.key||'none')+':'+(this.actor.walkClock||0).toFixed(2);
           this.collisionProbe=null;
         }
       }
