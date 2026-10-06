@@ -238,7 +238,7 @@
   // Physics happens at the character's shoes, not across the giant portrait sprite.
   // This makes movement feel grounded and keeps collision stable when the art changes direction.
   function createActor(scene,x,y){
-    const actor=scene.add.rectangle(x,y,44,26,0x00ff66,DEBUG?.22:0);
+    const actor=scene.add.rectangle(x,y,44,26,0x00ff66,DEBUG ? .22 : 0);
     scene.physics.add.existing(actor);
     actor.body.setCollideWorldBounds(true);
     actor.body.setDrag(900,900);
@@ -264,20 +264,20 @@
     if(moving){
       actor.walkClock=(actor.walkClock||0)+dt*6.8;
       const phase=actor.walkClock*Math.PI*2;
-      bob=Math.abs(Math.sin(phase))*5.2;
-      sway=Math.sin(phase)*2.4;
-      lean=Math.sin(phase)*1.35;
-      squash=Math.sin(phase*2)*.012;
+      bob=Math.abs(Math.sin(phase))*6.2;
+      sway=Math.sin(phase)*3.1;
+      lean=Math.sin(phase)*1.7;
+      squash=Math.sin(phase*2)*.018;
     }else{
       actor.walkClock=0;
     }
 
-    visual.setPosition(actor.x+sway,actor.y+4-bob);
+    visual.setPosition(actor.x+sway,actor.y+4-bob+(moving&&Math.sin(actor.walkClock*Math.PI*4)>.82?1.8:0));
     visual.setAngle(lean);
     visual.setDisplaySize(size.w*(1-squash*.35),size.h*(1+squash));
     actor.shadow.setPosition(actor.x,actor.y+6);
     actor.shadow.setDisplaySize(54+(moving?Math.abs(Math.sin(actor.walkClock*Math.PI*2))*5:0),16-(moving?2:0));
-    actor.shadow.setAlpha(moving?.27:.34);
+    actor.shadow.setAlpha(moving ? .27 : .34);
   }
 
   function npc(scene,key,x,y,height,phase=0){
@@ -290,8 +290,8 @@
     s.baseH=s.displayHeight;
     s.idlePhase=phase;
     s.shadow=scene.add.ellipse(x,y+5,Math.max(44,s.displayWidth*.58),14,0x000000,.28);
-    s.shadow.setDepth(70+y*.01-.02);
-    s.setDepth(70+y*.01);
+    s.shadow.setDepth(80+y*.01-.04);
+    s.setDepth(80+y*.01);
     return s;
   }
 
@@ -326,7 +326,7 @@
       this.actor=createActor(this,780,790);
 
       const block=(x,y,w,h,label)=>{
-        const r=this.add.rectangle(x,y,w,h,DEBUG?0xff3b7a:0x000000,DEBUG?.16:0);
+        const r=this.add.rectangle(x,y,w,h,DEBUG?0xff3b7a:0x000000,DEBUG ? .16 : 0);
         if(DEBUG)r.setStrokeStyle(2,0xff7bad,.85);
         this.physics.add.existing(r,true);
         r.collisionLabel=label;
@@ -415,6 +415,10 @@
       refreshUI();
 
       if(AUTOTEST==='quest-chain')this.runAutotest();
+      if(AUTOTEST==='collision-map'){
+        this.collisionProbe={started:0};
+        this.actor.setPosition(520,780);
+      }
     }
 
     addRoomLife(){
@@ -618,7 +622,7 @@
         return;
       }
       const dt=Math.min(.034,dtMs/1000);
-      let x=stick.x,y=stick.y;
+      let x=this.collisionProbe?-1:stick.x,y=this.collisionProbe?0:stick.y;
       const m=Math.hypot(x,y);
       if(m>.01){x/=Math.max(1,m);y/=Math.max(1,m);}
       this.actor.setVelocity(x*235,y*235);
@@ -627,15 +631,28 @@
       if(moving)dir=Math.abs(x)>Math.abs(y)?(x<0?'left':'right'):(y<0?'up':'down');
       applyHero(this.actor,state.hero,dir,moving,dt);
 
+      if(this.collisionProbe){
+        if(!this.collisionProbe.started)this.collisionProbe.started=time;
+        if(time-this.collisionProbe.started>850){
+          const pass=this.actor.x>=468&&this.actor.x<=482;
+          this.actor.body.setVelocity(0,0);
+          document.body.dataset.v5CollisionTest=pass?'pass':'fail:'+Math.round(this.actor.x);
+          this.collisionProbe=null;
+        }
+      }
+
       const footDepth=80+this.actor.y*.01;
       this.actor.visual.setDepth(footDepth);
       this.actor.shadow.setDepth(footDepth-.04);
       idleNpc(this.will,time);
       idleNpc(this.denise,time);
       idleNpc(this.dad,time);
-      this.will.setDepth(70+this.will.baseY*.01);
-      this.denise.setDepth(70+this.denise.baseY*.01);
-      this.dad.setDepth(70+this.dad.baseY*.01);
+      this.will.setDepth(80+this.will.baseY*.01);
+      this.denise.setDepth(80+this.denise.baseY*.01);
+      this.dad.setDepth(80+this.dad.baseY*.01);
+      this.will.shadow.setDepth(80+this.will.baseY*.01-.04);
+      this.denise.shadow.setDepth(80+this.denise.baseY*.01-.04);
+      this.dad.shadow.setDepth(80+this.dad.baseY*.01-.04);
 
       const n=this.nearest();
       if(n){
