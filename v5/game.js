@@ -425,7 +425,7 @@
 
       if(AUTOTEST==='quest-chain')this.runAutotest();
       if(AUTOTEST==='collision-map'){
-        this.collisionProbe={started:0};
+        this.collisionProbe={frames:0};
         this.actor.lastCollision='';
         this.actor.setPosition(520,860);
       }
@@ -642,14 +642,18 @@
       applyHero(this.actor,state.hero,dir,moving,dt);
 
       if(this.collisionProbe){
-        if(!this.collisionProbe.started)this.collisionProbe.started=time;
-        if(time-this.collisionProbe.started>850){
-          const collisionName=this.actor.lastCollision||'none';
-          const pass=collisionName==='bar front' && this.actor.x<520 && this.actor.x>445;
+        this.collisionProbe.frames++;
+        const collisionName=this.actor.lastCollision||'none';
+        const hitBar=collisionName==='bar front';
+        const escapedPastBar=this.actor.x<430;
+        const timedOut=this.collisionProbe.frames>360;
+        if(hitBar||escapedPastBar||timedOut){
+          const pass=hitBar && this.actor.x<520 && this.actor.x>445;
           const walked=(this.actor.walkClock||0)>.25 && this.actor.visual.texture.key==='rick-side';
           this.actor.body.setVelocity(0,0);
           document.body.dataset.v5CollisionTest=pass?'pass':'fail:'+collisionName+':'+Math.round(this.actor.x);
           document.body.dataset.v5CollisionBody=Math.round(this.actor.body.width)+'x'+Math.round(this.actor.body.height);
+          document.body.dataset.v5CollisionFrames=String(this.collisionProbe.frames);
           document.body.dataset.v5WalkMotion=walked?'pass':'fail:'+(this.actor.visual.texture.key||'none')+':'+(this.actor.walkClock||0).toFixed(2);
           this.collisionProbe=null;
         }
