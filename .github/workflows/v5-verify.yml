@@ -2,7 +2,12 @@ name: Verify V5 production slice
 
 on:
   push:
-    branches: ["v5-production"]
+    branches: ["main", "v5-production", "v5-movement-collision"]
+    paths:
+      - "v5/**"
+      - ".github/workflows/v5-verify.yml"
+  pull_request:
+    branches: ["main"]
     paths:
       - "v5/**"
       - ".github/workflows/v5-verify.yml"
