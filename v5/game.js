@@ -4,6 +4,7 @@
   const P = new URLSearchParams(location.search);
   const RESET = P.get('reset') === '1';
   const AUTOTEST = P.get('autotest') || '';
+  const DEBUG = P.get('debug') === '1';
   const SAVE_KEY = 'penwortham-after-dark-v5-slice';
 
   const Q = Object.freeze({
@@ -121,6 +122,7 @@
     ui.prompt.classList.add('hidden');
     stick.x=stick.y=0;
     current?.actor?.setVelocity(0,0);
+    if(current?.actor)applyHero(current.actor,state.hero,current.actor.heroDir||'down',false,0);
   }
 
   function advanceDialogue(){
@@ -230,42 +232,78 @@
   }
 
   function heroSize(hero){
-    return hero==='laura' ? {w:92,h:138} : {w:88,h:132};
+    return hero==='laura' ? {w:112,h:168} : {w:106,h:160};
   }
 
+  // Physics happens at the character's shoes, not across the giant portrait sprite.
+  // This makes movement feel grounded and keeps collision stable when the art changes direction.
   function createActor(scene,x,y){
-    const actor=scene.physics.add.sprite(x,y,heroTexture(state.hero,'down')).setDepth(80).setCollideWorldBounds(true);
+    const actor=scene.add.rectangle(x,y,44,26,0x00ff66,DEBUG?.22:0);
+    scene.physics.add.existing(actor);
+    actor.body.setCollideWorldBounds(true);
+    actor.body.setDrag(900,900);
+    actor.setVelocity=(vx,vy)=>{actor.body.setVelocity(vx,vy);return actor;};
     actor.heroDir='down';
     actor.walkClock=0;
-    const size=heroSize(state.hero);
-    actor.setDisplaySize(size.w,size.h);
-    actor.body.setSize(actor.width*.34,actor.height*.16,true);
-    actor.body.setOffset(actor.width*.33,actor.height*.80);
+
+    actor.shadow=scene.add.ellipse(x,y+5,54,16,0x000000,.34).setDepth(70);
+    actor.visual=scene.add.image(x,y+4,heroTexture(state.hero,'down')).setOrigin(.5,1).setDepth(80);
+    applyHero(actor,state.hero,'down',false,0);
     return actor;
   }
 
   function applyHero(actor,hero,dir,moving,dt){
+    const visual=actor.visual;
     const key=heroTexture(hero,dir);
-    if(actor.texture.key!==key)actor.setTexture(key);
-    actor.setFlipX(dir==='left');
+    if(visual.texture.key!==key)visual.setTexture(key);
+    visual.setFlipX(dir==='left');
     actor.heroDir=dir;
+
     const size=heroSize(hero);
-    actor.setDisplaySize(size.w,size.h);
+    let bob=0,sway=0,lean=0,squash=0;
     if(moving){
-      actor.walkClock=(actor.walkClock||0)+dt*9;
-      actor.setAngle(Math.sin(actor.walkClock*Math.PI)*.85);
-      actor.setScale(actor.scaleX,Math.abs(actor.scaleY)*(1+Math.sin(actor.walkClock*Math.PI*2)*.008));
+      actor.walkClock=(actor.walkClock||0)+dt*6.8;
+      const phase=actor.walkClock*Math.PI*2;
+      bob=Math.abs(Math.sin(phase))*5.2;
+      sway=Math.sin(phase)*2.4;
+      lean=Math.sin(phase)*1.35;
+      squash=Math.sin(phase*2)*.012;
     }else{
       actor.walkClock=0;
-      actor.setAngle(0);
     }
+
+    visual.setPosition(actor.x+sway,actor.y+4-bob);
+    visual.setAngle(lean);
+    visual.setDisplaySize(size.w*(1-squash*.35),size.h*(1+squash));
+    actor.shadow.setPosition(actor.x,actor.y+6);
+    actor.shadow.setDisplaySize(54+(moving?Math.abs(Math.sin(actor.walkClock*Math.PI*2))*5:0),16-(moving?2:0));
+    actor.shadow.setAlpha(moving?.27:.34);
   }
 
-  function npc(scene,key,x,y,height){
-    const s=scene.add.image(x,y,key).setDepth(65);
+  function npc(scene,key,x,y,height,phase=0){
+    const s=scene.add.image(x,y,key).setOrigin(.5,1);
     const ratio=s.width/s.height;
     s.setDisplaySize(height*ratio,height);
+    s.baseX=x;
+    s.baseY=y;
+    s.baseW=s.displayWidth;
+    s.baseH=s.displayHeight;
+    s.idlePhase=phase;
+    s.shadow=scene.add.ellipse(x,y+5,Math.max(44,s.displayWidth*.58),14,0x000000,.28);
+    s.shadow.setDepth(70+y*.01-.02);
+    s.setDepth(70+y*.01);
     return s;
+  }
+
+  function idleNpc(s,time){
+    const t=time*.001;
+    const breath=Math.sin(t*1.55+s.idlePhase);
+    const shift=Math.sin(t*.78+s.idlePhase*1.9);
+    s.setPosition(s.baseX+shift*.7,s.baseY);
+    s.setAngle(shift*.28);
+    s.setDisplaySize(s.baseW*(1-breath*.0025),s.baseH*(1+breath*.0035));
+    s.shadow.setPosition(s.baseX,s.baseY+5);
+    s.shadow.setScale(1-breath*.018,1);
   }
 
   class Tap extends Phaser.Scene {
@@ -285,24 +323,58 @@
       vignette.fillRect(0,820,1600,80);
 
       this.solids=[];
-      const wall=(x,y,w,h)=>{
-        const r=this.add.rectangle(x,y,w,h,0x000000,0);
-        this.physics.add.existing(r,true);
-        this.solids.push(r);
-        this.physics.add.collider(this.actor,r);
-      };
-
       this.actor=createActor(this,780,790);
 
-      // Bar occupies the left/top; stove and table occupy right side.
-      wall(0,0,520,565);
-      wall(520,0,1080,140);
-      wall(1260,140,340,390);
-      wall(760,385,250,180);
+      const block=(x,y,w,h,label)=>{
+        const r=this.add.rectangle(x,y,w,h,DEBUG?0xff3b7a:0x000000,DEBUG?.16:0);
+        if(DEBUG)r.setStrokeStyle(2,0xff7bad,.85);
+        this.physics.add.existing(r,true);
+        r.collisionLabel=label;
+        this.solids.push(r);
+        this.physics.add.collider(this.actor,r);
+        return r;
+      };
 
-      this.will=npc(this,'will',430,515,128);
-      this.denise=npc(this,'denise',1045,540,132);
-      this.dad=npc(this,'dad',1190,690,120);
+      // Collision map follows the actual illustrated furniture instead of four giant
+      // generic boxes. It is deliberately built from small rectangles so the walkable
+      // lanes match what the player can see.
+      block(188,315,376,630,'bar body');
+      block(425,202,112,404,'bar diagonal upper');
+      block(408,470,110,250,'bar diagonal lower');
+      block(225,775,450,250,'bar front');
+      block(735,205,92,410,'centre pillar');
+      block(1032,302,226,280,'stove and side table');
+      block(1478,450,244,900,'right wall and chairs');
+
+      // Bar stools.
+      block(602,342,58,58,'bar stool 1');
+      block(565,466,66,66,'bar stool 2');
+      block(522,604,70,70,'bar stool 3');
+      block(498,715,72,72,'bar stool 4');
+
+      // Round table and its chairs: several smaller bodies read much more naturally
+      // than one giant rectangle while still keeping the player out of the artwork.
+      block(1138,626,222,132,'round table');
+      block(1138,559,156,54,'round table rear');
+      block(1138,696,168,58,'round table front');
+      block(951,610,62,64,'table stool left');
+      block(1322,682,76,82,'table chair right');
+      block(1050,815,82,92,'table chair front');
+
+      const npcCollider=(s,w=48,h=26)=>{
+        const b=block(s.baseX,s.baseY-h*.45,w,h,'npc');
+        b.setVisible(DEBUG);
+        return b;
+      };
+
+      // NPC feet positions are world-space anchors. They now sit on the floor instead
+      // of being centred over it, and they physically occupy the room.
+      this.will=npc(this,'will',525,514,160,.2);
+      this.denise=npc(this,'denise',1036,548,170,1.7);
+      this.dad=npc(this,'dad',1198,696,154,3.1);
+      npcCollider(this.will,50,26);
+      npcCollider(this.denise,58,28);
+      npcCollider(this.dad,54,28);
 
       this.display=this.add.image(1370,225,'kendal').setDisplaySize(215,215).setDepth(10);
       this.display.setTint(0xe8d8c3);
@@ -314,13 +386,23 @@
         state.quest===Q.PICK_GLASSES
       );
 
+      // Small foreground copies of the same room art create real 3/4-depth:
+      // stand behind the table and its near edge covers your legs; walk in front and
+      // your foot-depth wins. No fake new artwork required.
+      const foregroundCrop=(x,y,w,h,depth)=>{
+        const img=this.add.image(x+w/2,y+h/2,'tap-bg').setCrop(x,y,w,h).setDisplaySize(w,h).setDepth(depth);
+        return img;
+      };
+      foregroundCrop(930,610,390,205,86.7);
+      foregroundCrop(0,650,455,250,87.15);
+
       if(this.wristband.visible)this.pulse(this.wristband,0xff4fa3);
       if(this.glasses.visible)this.pulse(this.glasses,0xb6ff3b);
 
       this.hotspots=[
-        {id:'will',x:490,y:555,r:135,label:'WILL',act:()=>this.onWill()},
-        {id:'denise',x:1045,y:590,r:120,label:'DENISE',act:()=>this.onDenise()},
-        {id:'dad',x:1190,y:720,r:115,label:'DAD',act:()=>this.onDad()},
+        {id:'will',x:525,y:514,r:118,label:'WILL',act:()=>this.onWill()},
+        {id:'denise',x:1036,y:548,r:122,label:'DENISE',act:()=>this.onDenise()},
+        {id:'dad',x:1198,y:696,r:118,label:'DAD',act:()=>this.onDad()},
         {id:'display',x:1330,y:360,r:125,label:'KENDAL DISPLAY',act:()=>this.onDisplay()},
         {id:'glasses',x:555,y:560,r:105,label:'YOUR GLASSES',enabled:()=>state.quest===Q.PICK_GLASSES,act:()=>this.takeGlasses()}
       ];
@@ -338,16 +420,14 @@
       document.body.dataset.v5Scene='tap';
       document.body.dataset.v5Assets='production';
       document.body.dataset.v5Hotspots=this.hotspots.map(h=>h.id).join(',');
+      document.body.dataset.v5CollisionCount=String(this.solids.length);
+      document.body.dataset.v5GroundedSprites='true';
       refreshUI();
 
       if(AUTOTEST==='quest-chain')this.runAutotest();
     }
 
     addRoomLife(){
-      // Tiny movement keeps the pub alive without making NPCs drift away from hotspots.
-      this.tweens.add({targets:this.will,y:this.will.y-3,duration:1450,yoyo:true,repeat:-1,ease:'Sine.easeInOut'});
-      this.tweens.add({targets:this.denise,angle:{from:-.5,to:.5},duration:1900,yoyo:true,repeat:-1,ease:'Sine.easeInOut'});
-      this.tweens.add({targets:this.dad,y:this.dad.y-2,duration:2100,yoyo:true,repeat:-1,ease:'Sine.easeInOut'});
       const glow=this.add.rectangle(845,150,540,8,0xf2c766,.10).setDepth(-38);
       this.tweens.add({targets:glow,alpha:{from:.04,to:.16},duration:1800,yoyo:true,repeat:-1,ease:'Sine.easeInOut'});
     }
@@ -531,18 +611,22 @@
       const finishDialogue=()=>{let i=0;while(dialogue&&i++<40)advanceDialogue();};
       state={...fresh(),hero:'rick'};
       this.onWill(); finishDialogue();
-      state.hero='laura'; this.actor.setPosition(490,555); this.useAbility(); finishDialogue();
-      state.hero='rick'; this.actor.setPosition(1045,590); this.useAbility(); finishDialogue();
+      state.hero='laura'; this.actor.setPosition(590,545); this.useAbility(); finishDialogue();
+      state.hero='rick'; this.actor.setPosition(955,575); this.useAbility(); finishDialogue();
       this.actor.setPosition(1330,360); this.onDisplay(); finishDialogue();
-      this.actor.setPosition(490,555); this.onWill(); finishDialogue();
+      this.actor.setPosition(590,545); this.onWill(); finishDialogue();
       this.actor.setPosition(555,560); this.takeGlasses(); finishDialogue();
-      this.actor.setPosition(1045,590); this.onDenise(); finishDialogue();
+      this.actor.setPosition(955,575); this.onDenise(); finishDialogue();
       if(state.quest===Q.FATS_TEASER){ this.playFatsTeaser(); finishDialogue(); }
       document.body.dataset.v5AutoTest=state.quest+':wristband='+state.wristband+':access='+state.access+':glasses='+state.glasses+':wine='+state.sauvignon;
     }
 
-    update(_,dtMs){
-      if(dialogue)return;
+    update(time,dtMs){
+      if(dialogue){
+        this.actor.body.setVelocity(0,0);
+        applyHero(this.actor,state.hero,this.actor.heroDir||'down',false,0);
+        return;
+      }
       const dt=Math.min(.034,dtMs/1000);
       let x=stick.x,y=stick.y;
       const m=Math.hypot(x,y);
@@ -553,10 +637,15 @@
       if(moving)dir=Math.abs(x)>Math.abs(y)?(x<0?'left':'right'):(y<0?'up':'down');
       applyHero(this.actor,state.hero,dir,moving,dt);
 
-      this.actor.setDepth(80+this.actor.y*.01);
-      this.will.setDepth(65+this.will.y*.01);
-      this.denise.setDepth(65+this.denise.y*.01);
-      this.dad.setDepth(65+this.dad.y*.01);
+      const footDepth=80+this.actor.y*.01;
+      this.actor.visual.setDepth(footDepth);
+      this.actor.shadow.setDepth(footDepth-.04);
+      idleNpc(this.will,time);
+      idleNpc(this.denise,time);
+      idleNpc(this.dad,time);
+      this.will.setDepth(70+this.will.baseY*.01);
+      this.denise.setDepth(70+this.denise.baseY*.01);
+      this.dad.setDepth(70+this.dad.baseY*.01);
 
       const n=this.nearest();
       if(n){
