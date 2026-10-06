@@ -496,6 +496,13 @@
       document.body.dataset.v5LayeredWalker='true';
       refreshUI();
 
+      if(AUTOTEST==='walk-showcase'){
+        this.actor.setPosition(790,790);
+        this.actor.walkClock=.055;
+        applyHero(this.actor,'rick','right',true,.045);
+        this.showcaseFrozen=true;
+        document.body.dataset.v5WalkShowcase='true';
+      }
       if(AUTOTEST==='smoke' && CI)setTimeout(()=>this.game.destroy(false),80);
       if(AUTOTEST==='quest-chain'){
         this.runAutotest();
@@ -704,6 +711,10 @@
     }
 
     update(time,dtMs){
+      if(this.showcaseFrozen){
+        this.actor.body.setVelocity(0,0);
+        return;
+      }
       if(dialogue){
         this.actor.body.setVelocity(0,0);
         applyHero(this.actor,state.hero,this.actor.heroDir||'down',false,0);
