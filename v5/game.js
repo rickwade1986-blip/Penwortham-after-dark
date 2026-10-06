@@ -399,24 +399,6 @@
       vignette.fillRect(0,0,1600,80);
       vignette.fillRect(0,820,1600,80);
 
-      // Duplicate tiny pieces of the actual room art as foreground layers. Their depth
-      // is tied to the furniture's floor position, so people pass behind/in front of
-      // the bar and table instead of always being pasted above the background.
-      this.foregroundMasks=[];
-      const foreground=(depth,draw)=>{
-        const copy=this.add.image(800,450,'tap-bg').setDisplaySize(1600,900).setDepth(depth);
-        const maskG=this.make.graphics({x:0,y:0,add:false});
-        maskG.fillStyle(0xffffff,1);
-        draw(maskG);
-        copy.setMask(maskG.createGeometryMask());
-        this.foregroundMasks.push(maskG);
-        return copy;
-      };
-      foreground(87.72,g=>g.fillPoints([
-        {x:0,y:565},{x:365,y:570},{x:492,y:690},{x:455,y:900},{x:0,y:900}
-      ],true));
-      foreground(86.62,g=>g.fillEllipse(1138,650,390,270));
-
       this.solids=[];
       this.actor=createActor(this,780,790);
 
@@ -511,7 +493,6 @@
       document.body.dataset.v5CollisionCount=String(this.solids.length);
       document.body.dataset.v5GroundedSprites='true';
       document.body.dataset.v5LayeredWalker='true';
-      document.body.dataset.v5DepthOcclusion='true';
       refreshUI();
 
       if(AUTOTEST==='quest-chain')this.runAutotest();
