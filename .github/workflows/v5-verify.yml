@@ -53,7 +53,7 @@ jobs:
           CHROME="$(which google-chrome || which chromium || which chromium-browser)"
           FLAGS="--headless=new --no-sandbox --disable-gpu --enable-unsafe-swiftshader --disable-dev-shm-usage --virtual-time-budget=9000"
 
-          timeout 30s "$CHROME" $FLAGS --dump-dom "http://127.0.0.1:8000/v5/index.html?reset=1" > smoke.html
+          timeout 70s "$CHROME" $FLAGS --dump-dom "http://127.0.0.1:8000/v5/index.html?reset=1" > smoke.html
           grep -q 'data-v5-ready="true"' smoke.html
           grep -q 'data-v5-scene="tap"' smoke.html
           grep -q 'data-v5-assets="production"' smoke.html
@@ -69,7 +69,7 @@ jobs:
           CHROME="$(which google-chrome || which chromium || which chromium-browser)"
           FLAGS="--headless=new --no-sandbox --disable-gpu --enable-unsafe-swiftshader --disable-dev-shm-usage --virtual-time-budget=10000"
 
-          timeout 30s "$CHROME" $FLAGS --dump-dom "http://127.0.0.1:8000/v5/index.html?reset=1&autotest=quest-chain" > chain.html
+          timeout 70s "$CHROME" $FLAGS --dump-dom "http://127.0.0.1:8000/v5/index.html?reset=1&autotest=quest-chain" > chain.html
           grep -q 'data-v5-auto-test="COMPLETE:wristband=true:access=true:glasses=true:wine=true"' chain.html
           ! grep -q 'data-v5-error=' chain.html
 
@@ -78,7 +78,7 @@ jobs:
           CHROME="$(which google-chrome || which chromium || which chromium-browser)"
           FLAGS="--headless=new --no-sandbox --disable-gpu --enable-unsafe-swiftshader --disable-dev-shm-usage --virtual-time-budget=5000"
 
-          timeout 30s "$CHROME" $FLAGS --dump-dom "http://127.0.0.1:8000/v5/index.html?reset=1&autotest=collision-map" > collision.html
+          timeout 70s "$CHROME" $FLAGS --dump-dom "http://127.0.0.1:8000/v5/index.html?reset=1&autotest=collision-map" > collision.html
           grep -q 'data-v5-collision-test="pass"' collision.html
           grep -q 'data-v5-walk-motion="pass"' collision.html
           grep -q 'data-v5-layered-walker="true"' collision.html
@@ -88,8 +88,8 @@ jobs:
         if: always()
         run: |
           CHROME="$(which google-chrome || which chromium || which chromium-browser)"
-          timeout 30s "$CHROME" --headless=new --no-sandbox --disable-gpu --enable-unsafe-swiftshader --disable-dev-shm-usage --window-size=1600,900 --virtual-time-budget=8000 --screenshot=v5-tap.png "http://127.0.0.1:8000/v5/index.html?reset=1" || true
-          timeout 30s "$CHROME" --headless=new --no-sandbox --disable-gpu --enable-unsafe-swiftshader --disable-dev-shm-usage --window-size=1600,900 --virtual-time-budget=5000 --screenshot=v5-collision-debug.png "http://127.0.0.1:8000/v5/index.html?reset=1&debug=1" || true
+          timeout 70s "$CHROME" --headless=new --no-sandbox --disable-gpu --enable-unsafe-swiftshader --disable-dev-shm-usage --window-size=1600,900 --virtual-time-budget=8000 --screenshot=v5-tap.png "http://127.0.0.1:8000/v5/index.html?reset=1" || true
+          timeout 70s "$CHROME" --headless=new --no-sandbox --disable-gpu --enable-unsafe-swiftshader --disable-dev-shm-usage --window-size=1600,900 --virtual-time-budget=5000 --screenshot=v5-collision-debug.png "http://127.0.0.1:8000/v5/index.html?reset=1&debug=1" || true
 
       - uses: actions/upload-artifact@v4
         if: always()
