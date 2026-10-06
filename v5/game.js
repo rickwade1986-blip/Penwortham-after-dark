@@ -640,8 +640,10 @@
         if(!this.collisionProbe.started)this.collisionProbe.started=time;
         if(time-this.collisionProbe.started>850){
           const pass=this.actor.x>=468&&this.actor.x<=482;
+          const walked=(this.actor.walkClock||0)>.25 && this.actor.visual.texture.key==='rick-side';
           this.actor.body.setVelocity(0,0);
           document.body.dataset.v5CollisionTest=pass?'pass':'fail:'+Math.round(this.actor.x);
+          document.body.dataset.v5WalkMotion=walked?'pass':'fail:'+(this.actor.visual.texture.key||'none')+':'+(this.actor.walkClock||0).toFixed(2);
           this.collisionProbe=null;
         }
       }
