@@ -2,7 +2,7 @@ name: Verify V5 production slice
 
 on:
   push:
-    branches: ["main", "v5-production", "v5-movement-collision"]
+    branches: ["main", "v5-production", "v5-movement-collision", "v5-visible-walk"]
     paths:
       - "v5/**"
       - ".github/workflows/v5-verify.yml"
@@ -19,6 +19,7 @@ permissions:
 jobs:
   verify:
     runs-on: ubuntu-latest
+    timeout-minutes: 4
     steps:
       - uses: actions/checkout@v4
 
@@ -52,12 +53,13 @@ jobs:
           CHROME="$(which google-chrome || which chromium || which chromium-browser)"
           FLAGS="--headless=new --no-sandbox --disable-gpu --enable-unsafe-swiftshader --disable-dev-shm-usage --virtual-time-budget=9000"
 
-          "$CHROME" $FLAGS --dump-dom "http://127.0.0.1:8000/v5/index.html?reset=1" > smoke.html
+          timeout 70s "$CHROME" $FLAGS --dump-dom "http://127.0.0.1:8000/v5/index.html?reset=1&autotest=smoke&ci=1" > smoke.html
           grep -q 'data-v5-ready="true"' smoke.html
           grep -q 'data-v5-scene="tap"' smoke.html
           grep -q 'data-v5-assets="production"' smoke.html
           grep -q 'data-v5-hotspots="will,denise,dad,display,glasses"' smoke.html
           grep -q 'data-v5-grounded-sprites="true"' smoke.html
+          grep -q 'data-v5-layered-walker="true"' smoke.html
           grep -q 'data-v5-collision-count="20"' smoke.html
           ! grep -q 'data-v5-error=' smoke.html
 
@@ -66,7 +68,7 @@ jobs:
           CHROME="$(which google-chrome || which chromium || which chromium-browser)"
           FLAGS="--headless=new --no-sandbox --disable-gpu --enable-unsafe-swiftshader --disable-dev-shm-usage --virtual-time-budget=10000"
 
-          "$CHROME" $FLAGS --dump-dom "http://127.0.0.1:8000/v5/index.html?reset=1&autotest=quest-chain" > chain.html
+          timeout 70s "$CHROME" $FLAGS --dump-dom "http://127.0.0.1:8000/v5/index.html?reset=1&autotest=quest-chain&ci=1" > chain.html
           grep -q 'data-v5-auto-test="COMPLETE:wristband=true:access=true:glasses=true:wine=true"' chain.html
           ! grep -q 'data-v5-error=' chain.html
 
@@ -75,17 +77,19 @@ jobs:
           CHROME="$(which google-chrome || which chromium || which chromium-browser)"
           FLAGS="--headless=new --no-sandbox --disable-gpu --enable-unsafe-swiftshader --disable-dev-shm-usage --virtual-time-budget=5000"
 
-          "$CHROME" $FLAGS --dump-dom "http://127.0.0.1:8000/v5/index.html?reset=1&autotest=collision-map" > collision.html
+          timeout 70s "$CHROME" $FLAGS --dump-dom "http://127.0.0.1:8000/v5/index.html?reset=1&autotest=collision-map&ci=1" > collision.html
           grep -q 'data-v5-collision-test="pass"' collision.html
           grep -q 'data-v5-walk-motion="pass"' collision.html
+          grep -q 'data-v5-layered-walker="true"' collision.html
           ! grep -q 'data-v5-error=' collision.html
 
       - name: Capture production screenshot
         if: always()
         run: |
           CHROME="$(which google-chrome || which chromium || which chromium-browser)"
-          timeout 30s "$CHROME" --headless=new --no-sandbox --disable-gpu --enable-unsafe-swiftshader --disable-dev-shm-usage --window-size=1600,900 --virtual-time-budget=8000 --screenshot=v5-tap.png "http://127.0.0.1:8000/v5/index.html?reset=1" || true
-          timeout 30s "$CHROME" --headless=new --no-sandbox --disable-gpu --enable-unsafe-swiftshader --disable-dev-shm-usage --window-size=1600,900 --virtual-time-budget=5000 --screenshot=v5-collision-debug.png "http://127.0.0.1:8000/v5/index.html?reset=1&debug=1" || true
+          timeout 70s "$CHROME" --headless=new --no-sandbox --disable-gpu --enable-unsafe-swiftshader --disable-dev-shm-usage --window-size=1600,900 --virtual-time-budget=8000 --screenshot=v5-tap.png "http://127.0.0.1:8000/v5/index.html?reset=1" || true
+          timeout 70s "$CHROME" --headless=new --no-sandbox --disable-gpu --enable-unsafe-swiftshader --disable-dev-shm-usage --window-size=1600,900 --virtual-time-budget=5000 --screenshot=v5-collision-debug.png "http://127.0.0.1:8000/v5/index.html?reset=1&debug=1" || true
+          timeout 70s "$CHROME" --headless=new --no-sandbox --disable-gpu --enable-unsafe-swiftshader --disable-dev-shm-usage --window-size=1600,900 --virtual-time-budget=2500 --screenshot=v5-walk-showcase.png "http://127.0.0.1:8000/v5/index.html?reset=1&autotest=walk-showcase" || true
 
       - uses: actions/upload-artifact@v4
         if: always()
@@ -97,4 +101,5 @@ jobs:
             chain.html
             collision.html
             v5-collision-debug.png
+            v5-walk-showcase.png
           retention-days: 3

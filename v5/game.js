@@ -5,6 +5,7 @@
   const RESET = P.get('reset') === '1';
   const AUTOTEST = P.get('autotest') || '';
   const DEBUG = P.get('debug') === '1';
+  const CI = P.get('ci') === '1';
   const SAVE_KEY = 'penwortham-after-dark-v5-slice';
 
   const Q = Object.freeze({
@@ -235,8 +236,61 @@
     return hero==='laura' ? {w:112,h:168} : {w:106,h:160};
   }
 
-  // Physics happens at the character's shoes, not across the giant portrait sprite.
-  // This makes movement feel grounded and keeps collision stable when the art changes direction.
+  function perspectiveAt(y){
+    return Phaser.Math.Clamp(.82+((y-280)/620)*.22,.80,1.07);
+  }
+
+  // Each directional source pose is split into an overlapping torso plus two lower-body
+  // halves. The torso hides the hip seam; the two leg pieces can then counter-swing.
+  // This is deliberately much more visible than moving one full-body PNG up and down.
+  function ensureHeroWalkFrames(scene,key){
+    const tex=scene.textures.get(key);
+    if(tex.frames['walk-upper'])return tex.walkMeta;
+    const base=tex.get('__BASE');
+    const w=base.cutWidth||base.width;
+    const h=base.cutHeight||base.height;
+    const legStart=Math.round(h*.54);
+    const upperEnd=Math.round(h*.69);
+    const mid=Math.round(w*.5);
+    tex.add('walk-upper',0,0,0,w,upperEnd);
+    tex.add('walk-leg-l',0,0,legStart,mid,h-legStart);
+    tex.add('walk-leg-r',0,mid,legStart,w-mid,h-legStart);
+    tex.walkMeta={w,h,legStart,upperEnd,mid};
+    return tex.walkMeta;
+  }
+
+  function rebuildHeroVisual(actor,hero,dir){
+    const scene=actor.scene;
+    const key=heroTexture(hero,dir);
+    const meta=ensureHeroWalkFrames(scene,key);
+    const size=heroSize(hero);
+    const s=size.h/meta.h;
+    const legH=(meta.h-meta.legStart)*s;
+    const upperBottom=(meta.h-meta.upperEnd)*s;
+
+    actor.visual?.destroy(true);
+    const visual=scene.add.container(actor.x,actor.y+4).setDepth(80);
+
+    const leftW=meta.mid*s;
+    const rightW=(meta.w-meta.mid)*s;
+    const leftX=(-meta.w*.5+meta.mid*.5)*s;
+    const rightX=(meta.mid+(meta.w-meta.mid)*.5-meta.w*.5)*s;
+    const legTop=-legH;
+
+    const left=scene.add.image(leftX,legTop,key,'walk-leg-l').setOrigin(.5,0);
+    left.setDisplaySize(leftW,legH);
+    const right=scene.add.image(rightX,legTop,key,'walk-leg-r').setOrigin(.5,0);
+    right.setDisplaySize(rightW,legH);
+    const upper=scene.add.image(0,-upperBottom,key,'walk-upper').setOrigin(.5,1);
+    upper.setDisplaySize(meta.w*s,meta.upperEnd*s);
+
+    visual.add([left,right,upper]);
+    actor.visual=visual;
+    actor.visualKey=key;
+    actor.parts={left,right,upper,leftX,rightX,legTop,upperY:-upperBottom};
+  }
+
+  // Physics happens at the character's shoes, not across the artwork.
   function createActor(scene,x,y){
     const actor=scene.add.rectangle(x,y,44,26,0x00ff66,DEBUG ? .22 : 0);
     scene.physics.add.existing(actor);
@@ -246,50 +300,68 @@
     actor.setVelocity=(vx,vy)=>{actor.body.setVelocity(vx,vy);return actor;};
     actor.heroDir='down';
     actor.walkClock=0;
+    actor.maxStride=0;
 
     actor.shadow=scene.add.ellipse(x,y+5,50,12,0x000000,.46).setDepth(70);
-    actor.visual=scene.add.image(x,y+4,heroTexture(state.hero,'down')).setOrigin(.5,1).setDepth(80);
+    rebuildHeroVisual(actor,state.hero,'down');
     applyHero(actor,state.hero,'down',false,0);
     return actor;
   }
 
   function applyHero(actor,hero,dir,moving,dt){
-    const visual=actor.visual;
     const key=heroTexture(hero,dir);
-    if(visual.texture.key!==key)visual.setTexture(key);
-    visual.setFlipX(dir==='left');
+    if(actor.visualKey!==key)rebuildHeroVisual(actor,hero,dir);
+    const visual=actor.visual;
+    const p=actor.parts;
     actor.heroDir=dir;
 
-    const size=heroSize(hero);
-    let bob=0,sway=0,lean=0,squash=0;
+    let bob=0,sway=0,torsoLean=0,stride=0;
     if(moving){
       actor.idleClock=0;
-      actor.walkClock=(actor.walkClock||0)+dt*6.8;
+      actor.walkClock=(actor.walkClock||0)+dt*2.85;
       const phase=actor.walkClock*Math.PI*2;
-      bob=Math.abs(Math.sin(phase))*6.2;
-      sway=Math.sin(phase)*3.1;
-      lean=Math.sin(phase)*1.7;
-      squash=Math.sin(phase*2)*.018;
+      stride=Math.sin(phase);
+      const side=(dir==='left'||dir==='right');
+      const strideDeg=side?11:7.5;
+      p.left.setAngle(stride*strideDeg);
+      p.right.setAngle(-stride*strideDeg);
+      p.left.setPosition(p.leftX-stride*2.2,p.legTop+Math.max(0,-stride)*3.5);
+      p.right.setPosition(p.rightX+stride*2.2,p.legTop+Math.max(0,stride)*3.5);
+      p.upper.setPosition(-stride*(side?1.8:1.1),p.upperY-Math.abs(Math.sin(phase*2))*1.6);
+      p.upper.setAngle(-stride*(side?1.7:1.1));
+      bob=Math.abs(Math.sin(phase*2))*2.8;
+      sway=stride*(side?1.7:.8);
+      torsoLean=-stride*(side?.55:.25);
+      actor.maxStride=Math.max(actor.maxStride||0,Math.abs(p.left.angle-p.right.angle));
     }else{
       actor.walkClock=0;
       actor.idleClock=(actor.idleClock||0)+dt;
       const idle=Math.sin(actor.idleClock*2.15);
-      bob=idle*.75;
-      squash=idle*.0035;
+      p.left.setAngle(0);
+      p.right.setAngle(0);
+      p.left.setPosition(p.leftX,p.legTop);
+      p.right.setPosition(p.rightX,p.legTop);
+      p.upper.setPosition(0,p.upperY-idle*.7);
+      p.upper.setAngle(idle*.15);
+      bob=idle*.35;
     }
 
-    visual.setPosition(actor.x+sway,actor.y+4-bob+(moving&&Math.sin(actor.walkClock*Math.PI*4)>.82?1.8:0));
-    visual.setAngle(lean);
-    visual.setDisplaySize(size.w*(1-squash*.35),size.h*(1+squash));
+    const persp=perspectiveAt(actor.y);
+    const flip=dir==='left'?-1:1;
+    visual.setScale(flip*persp,persp);
+    visual.setPosition(actor.x+sway,actor.y+4-bob);
+    visual.setAngle(torsoLean);
+
     actor.shadow.setPosition(actor.x,actor.y+6);
-    actor.shadow.setDisplaySize(50+(moving?Math.abs(Math.sin(actor.walkClock*Math.PI*2))*6:0),12-(moving?1.5:0));
-    actor.shadow.setAlpha(moving ? .39 : .46);
+    actor.shadow.setDisplaySize((50+(moving?Math.abs(stride)*8:0))*persp,(12-(moving?Math.abs(stride)*1.7:0))*persp);
+    actor.shadow.setAlpha(moving ? .38 : .46);
   }
 
   function npc(scene,key,x,y,height,phase=0){
     const s=scene.add.image(x,y,key).setOrigin(.5,1);
     const ratio=s.width/s.height;
-    s.setDisplaySize(height*ratio,height);
+    const targetH=height*perspectiveAt(y);
+    s.setDisplaySize(targetH*ratio,targetH);
     s.baseX=x;
     s.baseY=y;
     s.baseW=s.displayWidth;
@@ -421,12 +493,25 @@
       document.body.dataset.v5Hotspots=this.hotspots.map(h=>h.id).join(',');
       document.body.dataset.v5CollisionCount=String(this.solids.length);
       document.body.dataset.v5GroundedSprites='true';
+      document.body.dataset.v5LayeredWalker='true';
       refreshUI();
 
-      if(AUTOTEST==='quest-chain')this.runAutotest();
+      if(AUTOTEST==='walk-showcase'){
+        this.actor.setPosition(790,790);
+        this.actor.walkClock=.055;
+        applyHero(this.actor,'rick','right',true,.045);
+        this.showcaseFrozen=true;
+        document.body.dataset.v5WalkShowcase='true';
+      }
+      if(AUTOTEST==='smoke' && CI)setTimeout(()=>this.game.destroy(false),80);
+      if(AUTOTEST==='quest-chain'){
+        this.runAutotest();
+        if(CI)setTimeout(()=>this.game.destroy(false),80);
+      }
       if(AUTOTEST==='collision-map'){
         this.collisionProbe={frames:0};
         this.actor.lastCollision='';
+        this.actor.maxStride=0;
         this.actor.setPosition(520,860);
       }
     }
@@ -626,6 +711,10 @@
     }
 
     update(time,dtMs){
+      if(this.showcaseFrozen){
+        this.actor.body.setVelocity(0,0);
+        return;
+      }
       if(dialogue){
         this.actor.body.setVelocity(0,0);
         applyHero(this.actor,state.hero,this.actor.heroDir||'down',false,0);
@@ -649,13 +738,14 @@
         const timedOut=this.collisionProbe.frames>360;
         if(hitBar||escapedPastBar||timedOut){
           const pass=hitBar && this.actor.x<520 && this.actor.x>445;
-          const walked=(this.actor.walkClock||0)>.25 && this.actor.visual.texture.key==='rick-side';
+          const walked=(this.actor.walkClock||0)>.25 && this.actor.visualKey==='rick-side' && (this.actor.maxStride||0)>8;
           this.actor.body.setVelocity(0,0);
           document.body.dataset.v5CollisionTest=pass?'pass':'fail:'+collisionName+':'+Math.round(this.actor.x);
           document.body.dataset.v5CollisionBody=Math.round(this.actor.body.width)+'x'+Math.round(this.actor.body.height);
           document.body.dataset.v5CollisionFrames=String(this.collisionProbe.frames);
-          document.body.dataset.v5WalkMotion=walked?'pass':'fail:'+(this.actor.visual.texture.key||'none')+':'+(this.actor.walkClock||0).toFixed(2);
+          document.body.dataset.v5WalkMotion=walked?'pass':'fail:'+(this.actor.visualKey||'none')+':stride='+(this.actor.maxStride||0).toFixed(1);
           this.collisionProbe=null;
+          if(CI)setTimeout(()=>this.game.destroy(false),80);
         }
       }
 
