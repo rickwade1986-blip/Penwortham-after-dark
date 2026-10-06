@@ -5,6 +5,7 @@
   const RESET = P.get('reset') === '1';
   const AUTOTEST = P.get('autotest') || '';
   const DEBUG = P.get('debug') === '1';
+  const CI = P.get('ci') === '1';
   const SAVE_KEY = 'penwortham-after-dark-v5-slice';
 
   const Q = Object.freeze({
@@ -495,7 +496,11 @@
       document.body.dataset.v5LayeredWalker='true';
       refreshUI();
 
-      if(AUTOTEST==='quest-chain')this.runAutotest();
+      if(AUTOTEST==='smoke' && CI)setTimeout(()=>this.game.destroy(false),80);
+      if(AUTOTEST==='quest-chain'){
+        this.runAutotest();
+        if(CI)setTimeout(()=>this.game.destroy(false),80);
+      }
       if(AUTOTEST==='collision-map'){
         this.collisionProbe={frames:0};
         this.actor.lastCollision='';
@@ -729,6 +734,7 @@
           document.body.dataset.v5CollisionFrames=String(this.collisionProbe.frames);
           document.body.dataset.v5WalkMotion=walked?'pass':'fail:'+(this.actor.visualKey||'none')+':stride='+(this.actor.maxStride||0).toFixed(1);
           this.collisionProbe=null;
+          if(CI)setTimeout(()=>this.game.destroy(false),80);
         }
       }
 
