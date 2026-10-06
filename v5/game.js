@@ -246,7 +246,7 @@
     actor.heroDir='down';
     actor.walkClock=0;
 
-    actor.shadow=scene.add.ellipse(x,y+5,54,16,0x000000,.34).setDepth(70);
+    actor.shadow=scene.add.ellipse(x,y+5,50,12,0x000000,.46).setDepth(70);
     actor.visual=scene.add.image(x,y+4,heroTexture(state.hero,'down')).setOrigin(.5,1).setDepth(80);
     applyHero(actor,state.hero,'down',false,0);
     return actor;
@@ -262,6 +262,7 @@
     const size=heroSize(hero);
     let bob=0,sway=0,lean=0,squash=0;
     if(moving){
+      actor.idleClock=0;
       actor.walkClock=(actor.walkClock||0)+dt*6.8;
       const phase=actor.walkClock*Math.PI*2;
       bob=Math.abs(Math.sin(phase))*6.2;
@@ -270,14 +271,18 @@
       squash=Math.sin(phase*2)*.018;
     }else{
       actor.walkClock=0;
+      actor.idleClock=(actor.idleClock||0)+dt;
+      const idle=Math.sin(actor.idleClock*2.15);
+      bob=idle*.75;
+      squash=idle*.0035;
     }
 
     visual.setPosition(actor.x+sway,actor.y+4-bob+(moving&&Math.sin(actor.walkClock*Math.PI*4)>.82?1.8:0));
     visual.setAngle(lean);
     visual.setDisplaySize(size.w*(1-squash*.35),size.h*(1+squash));
     actor.shadow.setPosition(actor.x,actor.y+6);
-    actor.shadow.setDisplaySize(54+(moving?Math.abs(Math.sin(actor.walkClock*Math.PI*2))*5:0),16-(moving?2:0));
-    actor.shadow.setAlpha(moving ? .27 : .34);
+    actor.shadow.setDisplaySize(50+(moving?Math.abs(Math.sin(actor.walkClock*Math.PI*2))*6:0),12-(moving?1.5:0));
+    actor.shadow.setAlpha(moving ? .39 : .46);
   }
 
   function npc(scene,key,x,y,height,phase=0){
@@ -289,7 +294,7 @@
     s.baseW=s.displayWidth;
     s.baseH=s.displayHeight;
     s.idlePhase=phase;
-    s.shadow=scene.add.ellipse(x,y+5,Math.max(44,s.displayWidth*.58),14,0x000000,.28);
+    s.shadow=scene.add.ellipse(x,y+5,Math.max(42,s.displayWidth*.54),11,0x000000,.38);
     s.shadow.setDepth(80+y*.01-.04);
     s.setDepth(80+y*.01);
     return s;
@@ -417,7 +422,7 @@
       if(AUTOTEST==='quest-chain')this.runAutotest();
       if(AUTOTEST==='collision-map'){
         this.collisionProbe={started:0};
-        this.actor.setPosition(520,780);
+        this.actor.setPosition(520,860);
       }
     }
 
