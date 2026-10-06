@@ -371,7 +371,7 @@
       // of being centred over it, and they physically occupy the room.
       this.will=npc(this,'will',525,514,160,.2);
       this.denise=npc(this,'denise',1036,548,170,1.7);
-      this.dad=npc(this,'dad',1198,696,154,3.1);
+      this.dad=npc(this,'dad',1280,824,154,3.1);
       npcCollider(this.will,50,26);
       npcCollider(this.denise,58,28);
       npcCollider(this.dad,54,28);
@@ -386,23 +386,13 @@
         state.quest===Q.PICK_GLASSES
       );
 
-      // Small foreground copies of the same room art create real 3/4-depth:
-      // stand behind the table and its near edge covers your legs; walk in front and
-      // your foot-depth wins. No fake new artwork required.
-      const foregroundCrop=(x,y,w,h,depth)=>{
-        const img=this.add.image(x+w/2,y+h/2,'tap-bg').setCrop(x,y,w,h).setDisplaySize(w,h).setDepth(depth);
-        return img;
-      };
-      foregroundCrop(930,610,390,205,86.7);
-      foregroundCrop(0,650,455,250,87.15);
-
       if(this.wristband.visible)this.pulse(this.wristband,0xff4fa3);
       if(this.glasses.visible)this.pulse(this.glasses,0xb6ff3b);
 
       this.hotspots=[
         {id:'will',x:525,y:514,r:118,label:'WILL',act:()=>this.onWill()},
         {id:'denise',x:1036,y:548,r:122,label:'DENISE',act:()=>this.onDenise()},
-        {id:'dad',x:1198,y:696,r:118,label:'DAD',act:()=>this.onDad()},
+        {id:'dad',x:1280,y:824,r:118,label:'DAD',act:()=>this.onDad()},
         {id:'display',x:1330,y:360,r:125,label:'KENDAL DISPLAY',act:()=>this.onDisplay()},
         {id:'glasses',x:555,y:560,r:105,label:'YOUR GLASSES',enabled:()=>state.quest===Q.PICK_GLASSES,act:()=>this.takeGlasses()}
       ];
