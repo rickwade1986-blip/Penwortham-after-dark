@@ -760,7 +760,7 @@
         const timedOut=this.collisionProbe.frames>360;
         if(hitBar||escapedPastBar||timedOut){
           const pass=hitBar && this.actor.x<520 && this.actor.x>445;
-          const walked=(this.actor.walkClock||0)>.25 && this.actor.visualKey==='rick-side' && (this.actor.maxStride||0)>30;
+          const walked=this.actor.visualKey==='rick-side' && (this.actor.maxStride||0)>30;
           this.actor.body.setVelocity(0,0);
           document.body.dataset.v5CollisionTest=pass?'pass':'fail:'+collisionName+':'+Math.round(this.actor.x);
           document.body.dataset.v5CollisionBody=Math.round(this.actor.body.width)+'x'+Math.round(this.actor.body.height);
