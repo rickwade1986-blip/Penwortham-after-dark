@@ -233,11 +233,11 @@
   }
 
   function heroSize(hero){
-    return hero==='laura' ? {w:112,h:168} : {w:106,h:160};
+    return hero==='laura' ? {w:154,h:232} : {w:148,h:224};
   }
 
   function perspectiveAt(y){
-    return Phaser.Math.Clamp(.82+((y-280)/620)*.22,.80,1.07);
+    return Phaser.Math.Clamp(.88+((y-280)/620)*.18,.86,1.10);
   }
 
   // Each directional source pose is split into an overlapping torso plus two lower-body
@@ -302,7 +302,7 @@
     actor.walkClock=0;
     actor.maxStride=0;
 
-    actor.shadow=scene.add.ellipse(x,y+5,50,12,0x000000,.46).setDepth(70);
+    actor.shadow=scene.add.ellipse(x,y+6,68,15,0x000000,.48).setDepth(70);
     rebuildHeroVisual(actor,state.hero,'down');
     applyHero(actor,state.hero,'down',false,0);
     return actor;
@@ -318,21 +318,27 @@
     let bob=0,sway=0,torsoLean=0,stride=0;
     if(moving){
       actor.idleClock=0;
-      actor.walkClock=(actor.walkClock||0)+dt*2.85;
-      const phase=actor.walkClock*Math.PI*2;
-      stride=Math.sin(phase);
+      actor.walkClock=(actor.walkClock||0)+dt;
+      const step=Math.floor(actor.walkClock*7.5)%4;
+      const pose=[0,1,0,-1][step];
+      stride=pose;
       const side=(dir==='left'||dir==='right');
-      const strideDeg=side?11:7.5;
-      p.left.setAngle(stride*strideDeg);
-      p.right.setAngle(-stride*strideDeg);
-      p.left.setPosition(p.leftX-stride*2.2,p.legTop+Math.max(0,-stride)*3.5);
-      p.right.setPosition(p.rightX+stride*2.2,p.legTop+Math.max(0,stride)*3.5);
-      p.upper.setPosition(-stride*(side?1.8:1.1),p.upperY-Math.abs(Math.sin(phase*2))*1.6);
-      p.upper.setAngle(-stride*(side?1.7:1.1));
-      bob=Math.abs(Math.sin(phase*2))*2.8;
-      sway=stride*(side?1.7:.8);
-      torsoLean=-stride*(side?.55:.25);
+      const strideDeg=side?21:13;
+      const lift=side?8:6;
+      const spread=side?5.2:3.5;
+
+      p.left.setAngle(pose*strideDeg);
+      p.right.setAngle(-pose*strideDeg);
+      p.left.setPosition(p.leftX-pose*spread,p.legTop+(pose<0?lift:0));
+      p.right.setPosition(p.rightX+pose*spread,p.legTop+(pose>0?lift:0));
+      p.upper.setPosition(-pose*(side?3.2:1.8),p.upperY-(step%2?3.2:0));
+      p.upper.setAngle(-pose*(side?3.1:1.8));
+
+      bob=step%2?4.2:0;
+      sway=pose*(side?3.4:1.5);
+      torsoLean=-pose*(side?1.2:.6);
       actor.maxStride=Math.max(actor.maxStride||0,Math.abs(p.left.angle-p.right.angle));
+      actor.lastWalkFrame=step;
     }else{
       actor.walkClock=0;
       actor.idleClock=(actor.idleClock||0)+dt;
@@ -341,20 +347,26 @@
       p.right.setAngle(0);
       p.left.setPosition(p.leftX,p.legTop);
       p.right.setPosition(p.rightX,p.legTop);
-      p.upper.setPosition(0,p.upperY-idle*.7);
-      p.upper.setAngle(idle*.15);
-      bob=idle*.35;
+      p.upper.setPosition(0,p.upperY-idle*1.1);
+      p.upper.setAngle(idle*.25);
+      bob=idle*.5;
+      actor.lastWalkFrame=0;
     }
+
+    actor.bump=Math.max(0,(actor.bump||0)-dt*5.5);
+    const bump=actor.bump||0;
+    const bx=dir==='left'?8*bump:dir==='right'?-8*bump:0;
+    const by=dir==='up'?7*bump:dir==='down'?-7*bump:0;
 
     const persp=perspectiveAt(actor.y);
     const flip=dir==='left'?-1:1;
-    visual.setScale(flip*persp,persp);
-    visual.setPosition(actor.x+sway,actor.y+4-bob);
-    visual.setAngle(torsoLean);
+    visual.setScale(flip*persp*(1-.05*bump),persp*(1+.035*bump));
+    visual.setPosition(actor.x+sway+bx,actor.y+4-bob+by);
+    visual.setAngle(torsoLean+(dir==='left'?2.5*bump:dir==='right'?-2.5*bump:0));
 
-    actor.shadow.setPosition(actor.x,actor.y+6);
-    actor.shadow.setDisplaySize((50+(moving?Math.abs(stride)*8:0))*persp,(12-(moving?Math.abs(stride)*1.7:0))*persp);
-    actor.shadow.setAlpha(moving ? .38 : .46);
+    actor.shadow.setPosition(actor.x,actor.y+7);
+    actor.shadow.setDisplaySize((68+(moving?Math.abs(stride)*12:0))*persp,(15-(moving?Math.abs(stride)*2.3:0))*persp);
+    actor.shadow.setAlpha(moving ? .40 : .48);
   }
 
   function npc(scene,key,x,y,height,phase=0){
@@ -377,9 +389,9 @@
     const t=time*.001;
     const breath=Math.sin(t*1.55+s.idlePhase);
     const shift=Math.sin(t*.78+s.idlePhase*1.9);
-    s.setPosition(s.baseX+shift*.7,s.baseY);
-    s.setAngle(shift*.28);
-    s.setDisplaySize(s.baseW*(1-breath*.0025),s.baseH*(1+breath*.0035));
+    s.setPosition(s.baseX+shift*2.2,s.baseY-Math.max(0,breath)*1.6);
+    s.setAngle(shift*.55);
+    s.setDisplaySize(s.baseW*(1-breath*.004),s.baseH*(1+breath*.006));
     s.shadow.setPosition(s.baseX,s.baseY+5);
     s.shadow.setScale(1-breath*.018,1);
   }
@@ -412,6 +424,15 @@
         this.solids.push(r);
         this.physics.add.collider(this.actor,r,()=>{
           this.actor.lastCollision=label;
+          const now=this.time.now;
+          if(now-(this.actor.lastBumpFx||0)>170){
+            this.actor.lastBumpFx=now;
+            this.actor.bump=1;
+            const ring=this.add.ellipse(this.actor.x,this.actor.y+7,44,15,0xffffff,0)
+              .setStrokeStyle(3,state.hero==='rick'?0xb6ff3b:0xff4fa3,.72)
+              .setDepth(120);
+            this.tweens.add({targets:ring,scaleX:1.65,scaleY:1.35,alpha:0,duration:180,onComplete:()=>ring.destroy()});
+          }
         });
         return r;
       };
@@ -450,9 +471,9 @@
 
       // NPC feet positions are world-space anchors. They now sit on the floor instead
       // of being centred over it, and they physically occupy the room.
-      this.will=npc(this,'will',525,514,160,.2);
-      this.denise=npc(this,'denise',1036,548,170,1.7);
-      this.dad=npc(this,'dad',1280,824,154,3.1);
+      this.will=npc(this,'will',525,514,190,.2);
+      this.denise=npc(this,'denise',1036,548,202,1.7);
+      this.dad=npc(this,'dad',1280,824,184,3.1);
       npcCollider(this.will,50,26);
       npcCollider(this.denise,58,28);
       npcCollider(this.dad,54,28);
@@ -494,11 +515,12 @@
       document.body.dataset.v5CollisionCount=String(this.solids.length);
       document.body.dataset.v5GroundedSprites='true';
       document.body.dataset.v5LayeredWalker='true';
+      document.body.dataset.v5ReadableWalk='true';
       refreshUI();
 
       if(AUTOTEST==='walk-showcase'){
         this.actor.setPosition(790,790);
-        this.actor.walkClock=.055;
+        this.actor.walkClock=.14;
         applyHero(this.actor,'rick','right',true,.045);
         this.showcaseFrozen=true;
         document.body.dataset.v5WalkShowcase='true';
@@ -738,7 +760,7 @@
         const timedOut=this.collisionProbe.frames>360;
         if(hitBar||escapedPastBar||timedOut){
           const pass=hitBar && this.actor.x<520 && this.actor.x>445;
-          const walked=(this.actor.walkClock||0)>.25 && this.actor.visualKey==='rick-side' && (this.actor.maxStride||0)>8;
+          const walked=(this.actor.walkClock||0)>.25 && this.actor.visualKey==='rick-side' && (this.actor.maxStride||0)>30 && [1,3].includes(this.actor.lastWalkFrame);
           this.actor.body.setVelocity(0,0);
           document.body.dataset.v5CollisionTest=pass?'pass':'fail:'+collisionName+':'+Math.round(this.actor.x);
           document.body.dataset.v5CollisionBody=Math.round(this.actor.body.width)+'x'+Math.round(this.actor.body.height);
