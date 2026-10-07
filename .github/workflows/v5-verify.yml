@@ -2,7 +2,7 @@ name: Verify V5 production slice
 
 on:
   push:
-    branches: ["main", "v5-production", "v5-movement-collision", "v5-visible-walk"]
+    branches: ["main", "v5-production", "v5-movement-collision", "v5-visible-walk", "v5-obvious-walk"]
     paths:
       - "v5/**"
       - ".github/workflows/v5-verify.yml"
@@ -60,6 +60,7 @@ jobs:
           grep -q 'data-v5-hotspots="will,denise,dad,display,glasses"' smoke.html
           grep -q 'data-v5-grounded-sprites="true"' smoke.html
           grep -q 'data-v5-layered-walker="true"' smoke.html
+          grep -q 'data-v5-readable-walk="true"' smoke.html
           grep -q 'data-v5-collision-count="20"' smoke.html
           ! grep -q 'data-v5-error=' smoke.html
 
