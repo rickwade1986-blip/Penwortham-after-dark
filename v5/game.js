@@ -6,6 +6,7 @@
   const AUTOTEST = P.get('autotest') || '';
   const DEBUG = P.get('debug') === '1';
   const CI = P.get('ci') === '1';
+  const PROOF = P.get('proof') === '1';
   const SAVE_KEY = 'penwortham-after-dark-v5-slice';
 
   const Q = Object.freeze({
@@ -135,6 +136,19 @@
       ui.dialogue.classList.add('hidden');
       done?.();
       refreshUI();
+
+      if(PROOF){
+        const proof=this.add.text(800,118,'NEW BUILD • 9 OCT • IF YOU CAN SEE THIS, YOU ARE ON THE NEW CODE',{
+          fontFamily:'Arial Black, Impact, sans-serif',
+          fontSize:'34px',
+          color:'#090b10',
+          backgroundColor:'#fff200',
+          padding:{x:18,y:10},
+          align:'center'
+        }).setOrigin(.5).setDepth(5000);
+        proof.setStroke('#ff2f9f',5);
+        this.tweens.add({targets:proof,scaleX:1.04,scaleY:1.04,duration:420,yoyo:true,repeat:-1});
+      }
     }else ui.line.textContent=dialogue.lines[dialogue.index];
     return true;
   }
@@ -516,6 +530,7 @@
       document.body.dataset.v5GroundedSprites='true';
       document.body.dataset.v5LayeredWalker='true';
       document.body.dataset.v5ReadableWalk='true';
+      document.body.dataset.v5BuildProof='2026-10-09';
       refreshUI();
 
       if(AUTOTEST==='walk-showcase'){
