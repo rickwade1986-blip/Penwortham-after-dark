@@ -209,12 +209,13 @@
     constructor(){super('Boot')}
     preload(){
       this.load.image('tap-bg','./assets/environments/tap_interior.jpg');
-      this.load.image('rick-down','./assets/characters/rick_master.png');
-      this.load.image('rick-side','./assets/characters/rick-side-walk.png');
-      this.load.image('rick-up','./assets/characters/rick-back-walk.png');
-      this.load.image('laura-down','./assets/characters/laura_master.png');
-      this.load.image('laura-side','./assets/characters/laura-side-walk.png');
-      this.load.image('laura-up','./assets/characters/laura-back-walk.png');
+      const sheet={frameWidth:256,frameHeight:384};
+      this.load.spritesheet('rick-front-cycle','./assets/characters/generated/rick-front-cycle.png',sheet);
+      this.load.spritesheet('rick-side-cycle','./assets/characters/generated/rick-side-cycle.png',sheet);
+      this.load.spritesheet('rick-back-cycle','./assets/characters/generated/rick-back-cycle.png',sheet);
+      this.load.spritesheet('laura-front-cycle','./assets/characters/generated/laura-front-cycle.png',sheet);
+      this.load.spritesheet('laura-side-cycle','./assets/characters/generated/laura-side-cycle.png',sheet);
+      this.load.spritesheet('laura-back-cycle','./assets/characters/generated/laura-back-cycle.png',sheet);
       this.load.image('will','./assets/characters/will_master.png');
       this.load.image('denise','./assets/characters/denise_master.png');
       this.load.image('dad','./assets/characters/dad_master.png');
@@ -223,74 +224,43 @@
       this.load.image('wristband','./assets/props/wristband.png');
       this.load.image('glasses','./assets/props/glasses.png');
     }
-    create(){ this.scene.start('Tap'); }
+    create(){
+      for(const hero of ['rick','laura']){
+        for(const dir of ['front','side','back']){
+          const tex=hero+'-'+dir+'-cycle';
+          this.anims.create({
+            key:'walk-'+hero+'-'+dir,
+            frames:this.anims.generateFrameNumbers(tex,{start:0,end:5}),
+            frameRate:8,
+            repeat:-1
+          });
+        }
+      }
+      this.scene.start('Tap');
+    }
   }
 
-  function heroTexture(hero,dir){
-    if(dir==='up') return hero+'-up';
-    if(dir==='left'||dir==='right') return hero+'-side';
-    return hero+'-down';
+  function heroCycle(hero,dir){
+    if(dir==='up')return hero+'-back-cycle';
+    if(dir==='left'||dir==='right')return hero+'-side-cycle';
+    return hero+'-front-cycle';
+  }
+
+  function heroAnim(hero,dir){
+    if(dir==='up')return 'walk-'+hero+'-back';
+    if(dir==='left'||dir==='right')return 'walk-'+hero+'-side';
+    return 'walk-'+hero+'-front';
   }
 
   function heroSize(hero){
-    return hero==='laura' ? {w:154,h:232} : {w:148,h:224};
+    return hero==='laura' ? {w:172,h:258} : {w:176,h:264};
   }
 
   function perspectiveAt(y){
-    return Phaser.Math.Clamp(.88+((y-280)/620)*.18,.86,1.10);
+    return Phaser.Math.Clamp(.88+((y-280)/620)*.20,.86,1.12);
   }
 
-  // Each directional source pose is split into an overlapping torso plus two lower-body
-  // halves. The torso hides the hip seam; the two leg pieces can then counter-swing.
-  // This is deliberately much more visible than moving one full-body PNG up and down.
-  function ensureHeroWalkFrames(scene,key){
-    const tex=scene.textures.get(key);
-    if(tex.frames['walk-upper'])return tex.walkMeta;
-    const base=tex.get('__BASE');
-    const w=base.cutWidth||base.width;
-    const h=base.cutHeight||base.height;
-    const legStart=Math.round(h*.54);
-    const upperEnd=Math.round(h*.69);
-    const mid=Math.round(w*.5);
-    tex.add('walk-upper',0,0,0,w,upperEnd);
-    tex.add('walk-leg-l',0,0,legStart,mid,h-legStart);
-    tex.add('walk-leg-r',0,mid,legStart,w-mid,h-legStart);
-    tex.walkMeta={w,h,legStart,upperEnd,mid};
-    return tex.walkMeta;
-  }
-
-  function rebuildHeroVisual(actor,hero,dir){
-    const scene=actor.scene;
-    const key=heroTexture(hero,dir);
-    const meta=ensureHeroWalkFrames(scene,key);
-    const size=heroSize(hero);
-    const s=size.h/meta.h;
-    const legH=(meta.h-meta.legStart)*s;
-    const upperBottom=(meta.h-meta.upperEnd)*s;
-
-    actor.visual?.destroy(true);
-    const visual=scene.add.container(actor.x,actor.y+4).setDepth(80);
-
-    const leftW=meta.mid*s;
-    const rightW=(meta.w-meta.mid)*s;
-    const leftX=(-meta.w*.5+meta.mid*.5)*s;
-    const rightX=(meta.mid+(meta.w-meta.mid)*.5-meta.w*.5)*s;
-    const legTop=-legH;
-
-    const left=scene.add.image(leftX,legTop,key,'walk-leg-l').setOrigin(.5,0);
-    left.setDisplaySize(leftW,legH);
-    const right=scene.add.image(rightX,legTop,key,'walk-leg-r').setOrigin(.5,0);
-    right.setDisplaySize(rightW,legH);
-    const upper=scene.add.image(0,-upperBottom,key,'walk-upper').setOrigin(.5,1);
-    upper.setDisplaySize(meta.w*s,meta.upperEnd*s);
-
-    visual.add([left,right,upper]);
-    actor.visual=visual;
-    actor.visualKey=key;
-    actor.parts={left,right,upper,leftX,rightX,legTop,upperY:-upperBottom};
-  }
-
-  // Physics happens at the character's shoes, not across the artwork.
+  // Real frame-based player animation. The artwork itself changes every step.
   function createActor(scene,x,y){
     const actor=scene.add.rectangle(x,y,44,26,0x00ff66,DEBUG ? .22 : 0);
     scene.physics.add.existing(actor);
@@ -299,74 +269,54 @@
     actor.body.setDrag(900,900);
     actor.setVelocity=(vx,vy)=>{actor.body.setVelocity(vx,vy);return actor;};
     actor.heroDir='down';
-    actor.walkClock=0;
-    actor.maxStride=0;
+    actor.visualKey='';
+    actor.walkFramesSeen=new Set();
 
-    actor.shadow=scene.add.ellipse(x,y+6,68,15,0x000000,.48).setDepth(70);
-    rebuildHeroVisual(actor,state.hero,'down');
+    actor.shadow=scene.add.ellipse(x,y+7,74,16,0x000000,.48).setDepth(70);
+    actor.visual=scene.add.sprite(x,y+4,heroCycle(state.hero,'down'),0).setOrigin(.5,1).setDepth(80);
     applyHero(actor,state.hero,'down',false,0);
     return actor;
   }
 
   function applyHero(actor,hero,dir,moving,dt){
-    const key=heroTexture(hero,dir);
-    if(actor.visualKey!==key)rebuildHeroVisual(actor,hero,dir);
     const visual=actor.visual;
-    const p=actor.parts;
+    const texture=heroCycle(hero,dir);
+    const anim=heroAnim(hero,dir);
     actor.heroDir=dir;
 
-    let bob=0,sway=0,torsoLean=0,stride=0;
+    if(actor.visualKey!==texture){
+      visual.stop();
+      visual.setTexture(texture,0);
+      actor.visualKey=texture;
+      actor.walkFramesSeen.clear();
+    }
+
     if(moving){
-      actor.idleClock=0;
-      actor.walkClock=(actor.walkClock||0)+dt;
-      const step=Math.floor(actor.walkClock*7.5)%4;
-      const pose=[0,1,0,-1][step];
-      stride=pose;
-      const side=(dir==='left'||dir==='right');
-      const strideDeg=side?21:13;
-      const lift=side?8:6;
-      const spread=side?5.2:3.5;
-
-      p.left.setAngle(pose*strideDeg);
-      p.right.setAngle(-pose*strideDeg);
-      p.left.setPosition(p.leftX-pose*spread,p.legTop+(pose<0?lift:0));
-      p.right.setPosition(p.rightX+pose*spread,p.legTop+(pose>0?lift:0));
-      p.upper.setPosition(-pose*(side?3.2:1.8),p.upperY-(step%2?3.2:0));
-      p.upper.setAngle(-pose*(side?3.1:1.8));
-
-      bob=step%2?4.2:0;
-      sway=pose*(side?3.4:1.5);
-      torsoLean=-pose*(side?1.2:.6);
-      actor.maxStride=Math.max(actor.maxStride||0,Math.abs(p.left.angle-p.right.angle));
-      actor.lastWalkFrame=step;
+      visual.play(anim,true);
+      actor.walkFramesSeen.add(String(visual.frame.name));
     }else{
-      actor.walkClock=0;
-      actor.idleClock=(actor.idleClock||0)+dt;
-      const idle=Math.sin(actor.idleClock*2.15);
-      p.left.setAngle(0);
-      p.right.setAngle(0);
-      p.left.setPosition(p.leftX,p.legTop);
-      p.right.setPosition(p.rightX,p.legTop);
-      p.upper.setPosition(0,p.upperY-idle*1.1);
-      p.upper.setAngle(idle*.25);
-      bob=idle*.5;
-      actor.lastWalkFrame=0;
+      visual.stop();
+      visual.setFrame(0);
     }
 
     actor.bump=Math.max(0,(actor.bump||0)-dt*5.5);
     const bump=actor.bump||0;
-    const bx=dir==='left'?8*bump:dir==='right'?-8*bump:0;
+    const bx=dir==='left'?9*bump:dir==='right'?-9*bump:0;
     const by=dir==='up'?7*bump:dir==='down'?-7*bump:0;
 
+    const frame=Number(visual.frame.name)||0;
+    const bob=moving&&[1,2,4,5].includes(frame)?3.5:0;
     const persp=perspectiveAt(actor.y);
-    const flip=dir==='left'?-1:1;
-    visual.setScale(flip*persp*(1-.05*bump),persp*(1+.035*bump));
-    visual.setPosition(actor.x+sway+bx,actor.y+4-bob+by);
-    visual.setAngle(torsoLean+(dir==='left'?2.5*bump:dir==='right'?-2.5*bump:0));
+    const size=heroSize(hero);
+
+    visual.setFlipX(dir==='left');
+    visual.setDisplaySize(size.w*persp*(1-.045*bump),size.h*persp*(1+.03*bump));
+    visual.setPosition(actor.x+bx,actor.y+4-bob+by);
+    visual.setAngle((dir==='left'?2.5:dir==='right'?-2.5:0)*bump);
 
     actor.shadow.setPosition(actor.x,actor.y+7);
-    actor.shadow.setDisplaySize((68+(moving?Math.abs(stride)*12:0))*persp,(15-(moving?Math.abs(stride)*2.3:0))*persp);
-    actor.shadow.setAlpha(moving ? .40 : .48);
+    actor.shadow.setDisplaySize((74+(moving?frame%3*3:0))*persp,(16-(moving?2:0))*persp);
+    actor.shadow.setAlpha(moving?.40:.48);
   }
 
   function npc(scene,key,x,y,height,phase=0){
@@ -514,16 +464,18 @@
       document.body.dataset.v5Hotspots=this.hotspots.map(h=>h.id).join(',');
       document.body.dataset.v5CollisionCount=String(this.solids.length);
       document.body.dataset.v5GroundedSprites='true';
-      document.body.dataset.v5LayeredWalker='true';
-      document.body.dataset.v5ReadableWalk='true';
+      document.body.dataset.v5SpriteSheets='true';
+      document.body.dataset.v5WalkFrames='6';
       refreshUI();
 
       if(AUTOTEST==='walk-showcase'){
         this.actor.setPosition(790,790);
-        this.actor.walkClock=.14;
         applyHero(this.actor,'rick','right',true,.045);
+        this.actor.visual.stop();
+        this.actor.visual.setFrame(1);
+        this.actor.walkFramesSeen.add('1');
         this.showcaseFrozen=true;
-        document.body.dataset.v5WalkShowcase='true';
+        document.body.dataset.v5WalkShowcase='sprite-frame-1';
       }
       if(AUTOTEST==='smoke' && CI)setTimeout(()=>this.game.destroy(false),80);
       if(AUTOTEST==='quest-chain'){
@@ -533,7 +485,7 @@
       if(AUTOTEST==='collision-map'){
         this.collisionProbe={frames:0};
         this.actor.lastCollision='';
-        this.actor.maxStride=0;
+        this.actor.walkFramesSeen.clear();
         this.actor.setPosition(520,860);
       }
     }
@@ -760,12 +712,12 @@
         const timedOut=this.collisionProbe.frames>360;
         if(hitBar||escapedPastBar||timedOut){
           const pass=hitBar && this.actor.x<520 && this.actor.x>445;
-          const walked=this.actor.visualKey==='rick-side' && (this.actor.maxStride||0)>30;
+          const walked=this.actor.visualKey==='rick-side-cycle' && this.actor.walkFramesSeen.size>=2;
           this.actor.body.setVelocity(0,0);
           document.body.dataset.v5CollisionTest=pass?'pass':'fail:'+collisionName+':'+Math.round(this.actor.x);
           document.body.dataset.v5CollisionBody=Math.round(this.actor.body.width)+'x'+Math.round(this.actor.body.height);
           document.body.dataset.v5CollisionFrames=String(this.collisionProbe.frames);
-          document.body.dataset.v5WalkMotion=walked?'pass':'fail:'+(this.actor.visualKey||'none')+':stride='+(this.actor.maxStride||0).toFixed(1);
+          document.body.dataset.v5WalkMotion=walked?'pass':'fail:'+(this.actor.visualKey||'none')+':frames='+[...this.actor.walkFramesSeen].join(',');
           this.collisionProbe=null;
           if(CI)setTimeout(()=>this.game.destroy(false),80);
         }
