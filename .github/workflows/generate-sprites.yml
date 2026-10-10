@@ -1,0 +1,32 @@
+name: Generate V5 walk sprite sheets
+
+on:
+  push:
+    branches: ["v5-real-sprites"]
+    paths:
+      - "tools/generate-walk-sheets.mjs"
+      - ".github/workflows/generate-sprites.yml"
+
+permissions:
+  contents: write
+
+jobs:
+  generate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: v5-real-sprites
+      - name: Generate sprite sheets
+        run: node tools/generate-walk-sheets.mjs
+      - name: Commit generated binary assets
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add v5/assets/characters/generated/
+          if git diff --cached --quiet; then
+            echo "No generated changes"
+          else
+            git commit -m "Generate real V5 walk sprite sheets"
+            git push origin HEAD:v5-real-sprites
+          fi

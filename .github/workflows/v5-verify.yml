@@ -2,7 +2,7 @@ name: Verify V5 production slice
 
 on:
   push:
-    branches: ["main", "v5-production", "v5-movement-collision", "v5-visible-walk", "v5-obvious-walk"]
+    branches: ["main", "v5-production", "v5-movement-collision", "v5-visible-walk", "v5-obvious-walk", "v5-real-sprites"]
     paths:
       - "v5/**"
       - ".github/workflows/v5-verify.yml"
@@ -35,6 +35,13 @@ jobs:
           test -f v5/assets/characters/laura_master.png
           test -f v5/assets/characters/laura-side-walk.png
           test -f v5/assets/characters/laura-back-walk.png
+          test -f v5/assets/characters/generated/rick-front-cycle.png
+          test -f v5/assets/characters/generated/rick-side-cycle.png
+          test -f v5/assets/characters/generated/rick-back-cycle.png
+          test -f v5/assets/characters/generated/laura-front-cycle.png
+          test -f v5/assets/characters/generated/laura-side-cycle.png
+          test -f v5/assets/characters/generated/laura-back-cycle.png
+          test -f v5/assets/characters/generated/walk-cycles.json
           test -f v5/assets/characters/will_master.png
           test -f v5/assets/characters/denise_master.png
           test -f v5/assets/characters/dad_master.png
@@ -59,8 +66,8 @@ jobs:
           grep -q 'data-v5-assets="production"' smoke.html
           grep -q 'data-v5-hotspots="will,denise,dad,display,glasses"' smoke.html
           grep -q 'data-v5-grounded-sprites="true"' smoke.html
-          grep -q 'data-v5-layered-walker="true"' smoke.html
-          grep -q 'data-v5-readable-walk="true"' smoke.html
+          grep -q 'data-v5-sprite-sheets="true"' smoke.html
+          grep -q 'data-v5-walk-frames="6"' smoke.html
           grep -q 'data-v5-collision-count="20"' smoke.html
           ! grep -q 'data-v5-error=' smoke.html
 
@@ -81,7 +88,7 @@ jobs:
           timeout 70s "$CHROME" $FLAGS --dump-dom "http://127.0.0.1:8000/v5/index.html?reset=1&autotest=collision-map&ci=1" > collision.html
           grep -q 'data-v5-collision-test="pass"' collision.html
           grep -q 'data-v5-walk-motion="pass"' collision.html
-          grep -q 'data-v5-layered-walker="true"' collision.html
+          grep -q 'data-v5-sprite-sheets="true"' collision.html
           ! grep -q 'data-v5-error=' collision.html
 
       - name: Capture production screenshot
