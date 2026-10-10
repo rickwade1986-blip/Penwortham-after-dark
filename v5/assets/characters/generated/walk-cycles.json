@@ -1,0 +1,54 @@
+{
+  "generatedAt": "2026-10-10T00:39:01.396Z",
+  "frameRate": 8,
+  "cycles": [
+    {
+      "file": "rick-front-cycle.png",
+      "frameWidth": 256,
+      "frameHeight": 384,
+      "frames": 6,
+      "source": "rick_master.png",
+      "mode": "front"
+    },
+    {
+      "file": "rick-side-cycle.png",
+      "frameWidth": 256,
+      "frameHeight": 384,
+      "frames": 6,
+      "source": "rick-side-walk.png",
+      "mode": "side"
+    },
+    {
+      "file": "rick-back-cycle.png",
+      "frameWidth": 256,
+      "frameHeight": 384,
+      "frames": 6,
+      "source": "rick-back-walk.png",
+      "mode": "back"
+    },
+    {
+      "file": "laura-front-cycle.png",
+      "frameWidth": 256,
+      "frameHeight": 384,
+      "frames": 6,
+      "source": "laura_master.png",
+      "mode": "front"
+    },
+    {
+      "file": "laura-side-cycle.png",
+      "frameWidth": 256,
+      "frameHeight": 384,
+      "frames": 6,
+      "source": "laura-side-walk.png",
+      "mode": "side"
+    },
+    {
+      "file": "laura-back-cycle.png",
+      "frameWidth": 256,
+      "frameHeight": 384,
+      "frames": 6,
+      "source": "laura-back-walk.png",
+      "mode": "back"
+    }
+  ]
+}
