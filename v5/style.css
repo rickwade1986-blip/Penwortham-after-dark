@@ -6,9 +6,9 @@ body{position:fixed;inset:0}
 #game{position:fixed;inset:0;display:grid;place-items:center;overflow:hidden;background:#090b10}
 #game canvas{display:block;max-width:100%;max-height:100%;touch-action:none;image-rendering:auto}
 button{font:inherit}
-#hud{position:fixed;z-index:30;left:max(12px,env(safe-area-inset-left));right:max(12px,env(safe-area-inset-right));top:max(9px,env(safe-area-inset-top));display:grid;grid-template-columns:auto minmax(210px,360px) auto;gap:10px;pointer-events:none}
+#hud{position:fixed;z-index:30;left:max(12px,env(safe-area-inset-left));right:max(12px,env(safe-area-inset-right));top:max(9px,env(safe-area-inset-top));display:grid;grid-template-columns:minmax(0,1fr) minmax(210px,360px) minmax(0,1fr);gap:10px;pointer-events:none}
 .brand,.quest,.hero{background:var(--panel);border:1px solid #ffffff1b;box-shadow:0 8px 26px #0009;backdrop-filter:blur(8px)}
-.brand{padding:8px 12px;border-radius:12px;font:900 italic clamp(15px,2vw,23px)/1 Impact,"Arial Black",sans-serif;white-space:nowrap}.brand b{color:var(--lime)}
+.brand{justify-self:start;width:max-content;padding:8px 12px;border-radius:12px;font:900 italic clamp(15px,2vw,23px)/1 Impact,"Arial Black",sans-serif;white-space:nowrap}.brand b{color:var(--lime)}
 .quest{justify-self:center;padding:7px 13px 9px;border-left:4px solid var(--lime);border-radius:10px;min-width:230px}.quest span{display:block;font-size:9px;letter-spacing:.18em;font-weight:900;color:var(--lime);margin-bottom:2px}.quest strong{font-size:clamp(11px,1.2vw,15px)}
 .hero{justify-self:end;display:flex;align-items:center;gap:9px;padding:8px 11px;border-radius:11px}.hero strong{font:900 italic 18px/1 Impact,"Arial Black",sans-serif;color:var(--lime)}#hearts{font-size:13px;color:var(--red);letter-spacing:1px}
 #controls{position:fixed;z-index:42;right:max(14px,env(safe-area-inset-right));bottom:max(13px,calc(env(safe-area-inset-bottom) + 2px));display:flex;align-items:flex-end;gap:8px}
