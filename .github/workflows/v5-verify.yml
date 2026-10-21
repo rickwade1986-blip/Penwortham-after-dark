@@ -91,6 +91,16 @@ jobs:
           grep -q 'data-v5-sprite-sheets="true"' collision.html
           ! grep -q 'data-v5-error=' collision.html
 
+      - name: Real movement and interaction regression
+        run: |
+          CHROME="$(which google-chrome || which chromium || which chromium-browser)"
+          FLAGS="--headless=new --no-sandbox --disable-gpu --enable-unsafe-swiftshader --disable-dev-shm-usage --virtual-time-budget=18000"
+          timeout 70s "$CHROME" $FLAGS --dump-dom "http://127.0.0.1:8000/v5/index.html?reset=1&autotest=navigation&ci=1" > navigation.html
+          grep -q 'data-v6-objective-marker="true"' navigation.html
+          grep -q 'data-v6-interaction-feedback="true"' navigation.html
+          grep -q 'data-v6-navigation-test="pass"' navigation.html
+          ! grep -q 'data-v5-error=' navigation.html
+
       - name: Capture production screenshot
         if: always()
         run: |
@@ -108,6 +118,7 @@ jobs:
             smoke.html
             chain.html
             collision.html
+            navigation.html
             v5-collision-debug.png
             v5-walk-showcase.png
           retention-days: 3
