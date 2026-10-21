@@ -519,6 +519,7 @@
         this.actor.walkFramesSeen.clear();
         this.actor.setPosition(520,860);
       }
+      if(AUTOTEST==='navigation')this.beginNavigationTest();
     }
 
     addRoomLife(){
@@ -695,6 +696,47 @@
       showToast(next?'MOVE CLOSER TO '+next.label:'NOTHING TO DO HERE',850);
     }
 
+    beginNavigationTest(){
+      // A genuine movement test: route around the SAME static bodies used by gameplay,
+      // then physically walk the actor to Will and ACT. No teleporting/quest forcing.
+      const cell=20,W=81,H=46,at=(gx,gy)=>gy*W+gx;
+      const inside=(x,y)=>x>=28&&x<=1572&&y>=20&&y<=880;
+      const passable=(x,y)=>inside(x,y)&&this.solids.every(s=>{
+        const b=s.body;
+        return x<b.x-25||x>b.x+b.width+25||
+          y<b.y-19||y>b.y+b.height+19;
+      });
+      const startX=Math.round(this.actor.x/cell),startY=Math.round(this.actor.y/cell);
+      const parent=new Int32Array(W*H).fill(-1);
+      const queue=[[startX,startY]],start=at(startX,startY);
+      parent[start]=start;
+      const goal=this.hotspots.find(h=>h.id==='will');let found=-1;
+      for(let head=0;head<queue.length&&head<15000;head++){
+        const [cx,cy]=queue[head],key=at(cx,cy),x=cx*cell,y=cy*cell;
+        if(Math.hypot(x-goal.x,y-goal.y)<goal.r-30){found=key;break;}
+        for(const [dx,dy] of [[1,0],[0,1],[-1,0],[0,-1]]){
+          const nx=cx+dx,ny=cy+dy;
+          if(nx<0||ny<0||nx>=W||ny>=H)continue;
+          const n=at(nx,ny);
+          if(parent[n]!==-1||!passable(nx*cell,ny*cell))continue;
+          parent[n]=key;
+          queue.push([nx,ny]);
+        }
+      }
+      if(found<0){
+        document.body.dataset.v6NavigationTest='fail:no-route';
+        return;
+      }
+      const route=[];
+      for(let p=found;p!==start;p=parent[p]){
+        route.push({x:(p%W)*cell,y:Math.floor(p/W)*cell});
+      }
+      route.reverse();
+      this.navProbe={route,index:0,frames:0,lastX:this.actor.x,lastY:this.actor.y,
+        distance:0};
+      document.body.dataset.v6NavigationState='walking';
+    }
+
     objectiveHotspot(){
       const id={
         [Q.TALK_WILL]:'will',
@@ -766,7 +808,37 @@
       }
       const dt=Math.min(.034,dtMs/1000);
       let x=this.collisionProbe?-1:stick.x,y=this.collisionProbe?0:stick.y;
-      if(!this.collisionProbe){
+      if(this.navProbe){
+        const probe=this.navProbe;
+        probe.frames++;
+        probe.distance+=Math.hypot(this.actor.x-probe.lastX,this.actor.y-probe.lastY);
+        probe.lastX=this.actor.x;probe.lastY=this.actor.y;
+        let point=probe.route[probe.index];
+        while(point&&Math.hypot(point.x-this.actor.x,point.y-this.actor.y)<12){
+          probe.index++;point=probe.route[probe.index];
+        }
+        const will=this.hotspots.find(h=>h.id==='will');
+        if(Math.hypot(this.actor.x-will.x,this.actor.y-will.y)<will.r-5 &&
+          probe.distance>220){
+          this.navProbe=null;
+          this.actor.setVelocity(0,0);
+          this.doAct();
+          while(dialogue)advanceDialogue();
+          document.body.dataset.v6NavigationTest=state.quest===Q.CALL_BS
+            ?'pass':'fail:interaction';
+          document.body.dataset.v6NavigationDistance=Math.round(probe.distance).toString();
+          if(CI)setTimeout(()=>this.game.destroy(false),80);
+          return;
+        }
+        if(probe.frames>1600||!point){
+          this.navProbe=null;
+          this.actor.setVelocity(0,0);
+          document.body.dataset.v6NavigationTest='fail:blocked:'+Math.round(probe.distance);
+          if(CI)setTimeout(()=>this.game.destroy(false),80);
+          return;
+        }
+        x=point.x-this.actor.x;y=point.y-this.actor.y;
+      }else if(!this.collisionProbe){
         for(const key of held){const axis=movementKeys[key];if(axis){x+=axis[0];y+=axis[1];}}
       }
       const m=Math.hypot(x,y);
@@ -851,7 +923,9 @@
   new Phaser.Game(config);
 
   ui.act.addEventListener('pointerdown',e=>{e.preventDefault();current?.doAct();});
-  ui.dialogue.addEventListener('pointerdown',e=>{e.preventDefault();advanceDialogue();});
+  ui.dialogue.addEventListener('pointerdown',e=>{
+    e.preventDefault();e.stopPropagation();advanceDialogue();
+  });
   ui.swap.addEventListener('pointerdown',e=>{e.preventDefault();current?.swap();});
   ui.ability.addEventListener('pointerdown',e=>{e.preventDefault();current?.useAbility();});
 
