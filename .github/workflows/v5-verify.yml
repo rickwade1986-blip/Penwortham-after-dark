@@ -77,6 +77,8 @@ jobs:
           FLAGS="--headless=new --no-sandbox --disable-gpu --enable-unsafe-swiftshader --disable-dev-shm-usage --virtual-time-budget=10000"
 
           timeout 70s "$CHROME" $FLAGS --dump-dom "http://127.0.0.1:8000/v5/index.html?reset=1&autotest=quest-chain&ci=1" > chain.html
+          grep -o 'data-v5-auto-test="[^"]*"' chain.html || true
+          grep -o 'data-v5-error="[^"]*"' chain.html || true
           grep -q 'data-v5-auto-test="COMPLETE:wristband=true:access=true:glasses=true:wine=true"' chain.html
           ! grep -q 'data-v5-error=' chain.html
 
@@ -101,24 +103,20 @@ jobs:
           grep -q 'data-v6-navigation-test="pass"' navigation.html
           ! grep -q 'data-v5-error=' navigation.html
 
-      - name: Capture production screenshot
+      - name: Capture gameplay screenshot
         if: always()
         run: |
           CHROME="$(which google-chrome || which chromium || which chromium-browser)"
-          timeout 70s "$CHROME" --headless=new --no-sandbox --disable-gpu --enable-unsafe-swiftshader --disable-dev-shm-usage --window-size=1600,900 --virtual-time-budget=8000 --screenshot=v5-tap.png "http://127.0.0.1:8000/v5/index.html?reset=1" || true
-          timeout 70s "$CHROME" --headless=new --no-sandbox --disable-gpu --enable-unsafe-swiftshader --disable-dev-shm-usage --window-size=1600,900 --virtual-time-budget=5000 --screenshot=v5-collision-debug.png "http://127.0.0.1:8000/v5/index.html?reset=1&debug=1" || true
-          timeout 70s "$CHROME" --headless=new --no-sandbox --disable-gpu --enable-unsafe-swiftshader --disable-dev-shm-usage --window-size=1600,900 --virtual-time-budget=2500 --screenshot=v5-walk-showcase.png "http://127.0.0.1:8000/v5/index.html?reset=1&autotest=walk-showcase" || true
+          timeout 25s "$CHROME" --headless=new --no-sandbox --disable-gpu --enable-unsafe-swiftshader --disable-dev-shm-usage --window-size=1600,900 --virtual-time-budget=2500 --screenshot=v6-tap.png "http://127.0.0.1:8000/v5/index.html?reset=1" || true
 
       - uses: actions/upload-artifact@v4
         if: always()
         with:
           name: v5-production-screenshot
           path: |
-            v5-tap.png
+            v6-tap.png
             smoke.html
             chain.html
             collision.html
             navigation.html
-            v5-collision-debug.png
-            v5-walk-showcase.png
           retention-days: 3
