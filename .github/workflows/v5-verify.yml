@@ -107,7 +107,9 @@ jobs:
         if: always()
         run: |
           CHROME="$(which google-chrome || which chromium || which chromium-browser)"
-          timeout 25s "$CHROME" --headless=new --no-sandbox --disable-gpu --enable-unsafe-swiftshader --disable-dev-shm-usage --window-size=1600,900 --virtual-time-budget=2500 --screenshot=v6-tap.png "http://127.0.0.1:8000/v5/index.html?reset=1" || true
+          timeout 65s "$CHROME" --headless=new --no-sandbox --disable-gpu --enable-unsafe-swiftshader --disable-dev-shm-usage --window-size=1600,900 --virtual-time-budget=2500 --screenshot=v6-tap.png "http://127.0.0.1:8000/v5/index.html?reset=1" || true
+          test -s v6-tap.png
+          test "$(wc -c < v6-tap.png)" -gt 100000
 
       - uses: actions/upload-artifact@v4
         if: always()
