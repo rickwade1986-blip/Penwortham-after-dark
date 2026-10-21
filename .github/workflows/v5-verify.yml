@@ -2,7 +2,7 @@ name: Verify V5 production slice
 
 on:
   push:
-    branches: ["main", "v5-production", "v5-movement-collision", "v5-visible-walk", "v5-obvious-walk", "v5-real-sprites"]
+    branches: ["main", "v5-production", "v5-movement-collision", "v5-visible-walk", "v5-obvious-walk", "v5-real-sprites", "v6-actual-gameplay"]
     paths:
       - "v5/**"
       - ".github/workflows/v5-verify.yml"
