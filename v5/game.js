@@ -73,6 +73,18 @@
   let dialogue = null;
   let toastTimer = 0;
   const stick = {x:0,y:0};
+  const held=new Set();
+  const movementKeys={ArrowLeft:[-1,0],KeyA:[-1,0],ArrowRight:[1,0],KeyD:[1,0],
+    ArrowUp:[0,-1],KeyW:[0,-1],ArrowDown:[0,1],KeyS:[0,1]};
+  window.addEventListener('keydown',e=>{
+    if(movementKeys[e.code]){e.preventDefault();held.add(e.code);return;}
+    if(e.repeat)return;
+    if(['Space','KeyE','Enter'].includes(e.code)){e.preventDefault();current?.doAct();}
+    if(e.code==='KeyQ'){e.preventDefault();current?.swap();}
+    if(e.code==='KeyR'){e.preventDefault();current?.useAbility();}
+  });
+  window.addEventListener('keyup',e=>held.delete(e.code));
+  window.addEventListener('blur',()=>held.clear());
 
   const save = () => {
     try { localStorage.setItem(SAVE_KEY, JSON.stringify(state)); } catch {}
@@ -375,7 +387,7 @@
         this.physics.add.collider(this.actor,r,()=>{
           this.actor.lastCollision=label;
           const now=this.time.now;
-          if(now-(this.actor.lastBumpFx||0)>170){
+          if(this.actor.isWalking && now-(this.actor.lastBumpFx||0)>380){
             this.actor.lastBumpFx=now;
             this.actor.bump=1;
             const ring=this.add.ellipse(this.actor.x,this.actor.y+7,44,15,0xffffff,0)
@@ -448,6 +460,23 @@
         {id:'display',x:1330,y:360,r:125,label:'KENDAL DISPLAY',act:()=>this.onDisplay()},
         {id:'glasses',x:555,y:560,r:105,label:'YOUR GLASSES',enabled:()=>state.quest===Q.PICK_GLASSES,act:()=>this.takeGlasses()}
       ];
+      this.beaconRing=this.add.ellipse(0,0,82,27,0xb6ff3b,.055)
+        .setStrokeStyle(3,0xb6ff3b,.85);
+      this.beaconLabel=this.add.text(0,-39,'', {
+        fontFamily:'Arial Black, Impact, sans-serif',
+        fontSize:'17px', color:'#0b0e14',
+        backgroundColor:'#b6ff3b',
+        padding:{x:12,y:6}
+      }).setOrigin(.5,1);
+      this.beaconPointer=this.add.triangle(0,-29,0,0,18,0,9,10,0xb6ff3b,1);
+      this.beacon=this.add.container(0,0,[
+        this.beaconRing,this.beaconLabel,this.beaconPointer
+      ]).setDepth(125);
+      this.tweens.add({
+        targets:this.beaconRing, scaleX:1.20, scaleY:1.20, alpha:.3,
+        duration:720, yoyo:true, repeat:-1, ease:'Sine.easeInOut'
+      });
+      this.lastBeaconQuest=null;
 
       // The Tap is a single illustrated room. Keep the whole composition readable
       // instead of following the player and turning the concept art into a crop.
@@ -464,6 +493,8 @@
       document.body.dataset.v5Hotspots=this.hotspots.map(h=>h.id).join(',');
       document.body.dataset.v5CollisionCount=String(this.solids.length);
       document.body.dataset.v5GroundedSprites='true';
+      document.body.dataset.v6ObjectiveMarker='true';
+      document.body.dataset.v6InteractionFeedback='true';
       document.body.dataset.v5SpriteSheets='true';
       document.body.dataset.v5WalkFrames='6';
       refreshUI();
@@ -659,7 +690,46 @@
     doAct(){
       if(advanceDialogue())return;
       const h=this.nearest();
-      h?.act?.();
+      if(h){h.act();return;}
+      const next=this.objectiveHotspot();
+      showToast(next?'MOVE CLOSER TO '+next.label:'NOTHING TO DO HERE',850);
+    }
+
+    objectiveHotspot(){
+      const id={
+        [Q.TALK_WILL]:'will',
+        [Q.CALL_BS]:'will',
+        [Q.GET_ACCESS]:'denise',
+        [Q.PICK_WRISTBAND]:'display',
+        [Q.RETURN_WILL]:'will',
+        [Q.PICK_GLASSES]:'glasses',
+        [Q.DENISE]:'denise'
+      }[state.quest];
+      return this.hotspots.find(h=>h.id===id)||null;
+    }
+
+    updateBeacon(){
+      const h=this.objectiveHotspot();
+      this.beacon.setVisible(!!h&&!dialogue);
+      if(!h)return;
+      this.beacon.setPosition(h.x,h.y+6);
+      if(this.lastBeaconQuest!==state.quest){
+        this.lastBeaconQuest=state.quest;
+        const special=state.quest===Q.CALL_BS?'CALL BS • LAURA'
+          :state.quest===Q.GET_ACCESS?'BULLSHIT • RICK'
+          :state.quest===Q.PICK_WRISTBAND?'OPEN DISPLAY'
+          :state.quest===Q.RETURN_WILL?'RETURN WRISTBAND'
+          :state.quest===Q.PICK_GLASSES?'TAKE GLASSES'
+          :state.quest===Q.DENISE?'SPEAK TO DENISE':'TALK TO WILL';
+        this.beaconLabel.setText(special);
+        const pink=[Q.CALL_BS,Q.DENISE].includes(state.quest);
+        const color=pink?0xff4fa3:0xb6ff3b;
+        this.beaconLabel.setBackgroundColor(pink?'#ff4fa3':'#b6ff3b');
+        this.beaconPointer.setFillStyle(color,1);
+        this.beaconRing.setStrokeStyle(3,color,.85);
+      }
+      // The marker responds to the player getting close, not just a looped glow.
+      this.beaconLabel.setAlpha(this.near(h.id,20)?1:.88);
     }
 
     swap(){
@@ -696,13 +766,29 @@
       }
       const dt=Math.min(.034,dtMs/1000);
       let x=this.collisionProbe?-1:stick.x,y=this.collisionProbe?0:stick.y;
+      if(!this.collisionProbe){
+        for(const key of held){const axis=movementKeys[key];if(axis){x+=axis[0];y+=axis[1];}}
+      }
       const m=Math.hypot(x,y);
       if(m>.01){x/=Math.max(1,m);y/=Math.max(1,m);}
       this.actor.setVelocity(x*235,y*235);
       const moving=Math.abs(x)+Math.abs(y)>.05;
+      this.actor.isWalking=moving;
       let dir=this.actor.heroDir||'down';
       if(moving)dir=Math.abs(x)>Math.abs(y)?(x<0?'left':'right'):(y<0?'up':'down');
       applyHero(this.actor,state.hero,dir,moving,dt);
+      if(moving){
+        this.footstepClock=(this.footstepClock||0)+dt;
+        if(this.footstepClock>.23){
+          this.footstepClock=0;
+          const p=this.add.ellipse(this.actor.x,this.actor.y+10,11,4,0xd2bfa8,.27)
+            .setDepth(75+this.actor.y*.01);
+          this.tweens.add({
+            targets:p,alpha:0,scaleX:2.1,scaleY:.55,
+            duration:280,onComplete:()=>p.destroy()
+          });
+        }
+      }else this.footstepClock=.12;
 
       if(this.collisionProbe){
         this.collisionProbe.frames++;
@@ -736,9 +822,17 @@
       this.denise.shadow.setDepth(80+this.denise.baseY*.01-.04);
       this.dad.shadow.setDepth(80+this.dad.baseY*.01-.04);
 
+      this.updateBeacon();
       const n=this.nearest();
       if(n){
-        ui.prompt.textContent='ACT · '+n.label;
+        const target=this.objectiveHotspot();
+        const ability=(n.id==='will'&&state.quest===Q.CALL_BS)||
+          (n.id==='denise'&&state.quest===Q.GET_ACCESS);
+        ui.prompt.textContent=ability
+          ?(state.hero===(state.quest===Q.CALL_BS?'laura':'rick')
+            ?'USE '+(state.hero==='laura'?'CALL BS':'BULLSHIT')
+            :'SWAP CHARACTER • THEN USE ABILITY')
+          :(n.id===target?.id?'ACT · '+n.label:'ACT · TALK TO '+n.label);
         ui.prompt.classList.remove('hidden');
       }else ui.prompt.classList.add('hidden');
     }
@@ -757,6 +851,7 @@
   new Phaser.Game(config);
 
   ui.act.addEventListener('pointerdown',e=>{e.preventDefault();current?.doAct();});
+  ui.dialogue.addEventListener('pointerdown',e=>{e.preventDefault();advanceDialogue();});
   ui.swap.addEventListener('pointerdown',e=>{e.preventDefault();current?.swap();});
   ui.ability.addEventListener('pointerdown',e=>{e.preventDefault();current?.useAbility();});
 
