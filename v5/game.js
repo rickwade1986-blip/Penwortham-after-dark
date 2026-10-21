@@ -755,6 +755,13 @@
       this.beacon.setVisible(!!h&&!dialogue);
       if(!h)return;
       this.beacon.setPosition(h.x,h.y+6);
+      // Keep the target ring around the feet, but put labels ABOVE the
+      // illustrated character instead of plastering text across their chest.
+      this.beaconLabel.setY(
+        h.id==='will'?-209:
+        h.id==='denise'?-225:
+        h.id==='display'?-99:-111
+      );
       if(this.lastBeaconQuest!==state.quest){
         this.lastBeaconQuest=state.quest;
         const special=state.quest===Q.CALL_BS?'CALL BS • LAURA'
