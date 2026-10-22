@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
   <meta name="theme-color" content="#090b10">
   <meta name="apple-mobile-web-app-capable" content="yes">
-  <title>Penwortham After Dark — V5 Production Slice</title>
+  <title>Penwortham After Dark — A Night in Penwortham</title>
   <link rel="stylesheet" href="./style.css">
 </head>
 <body>
@@ -46,12 +46,23 @@
       </div>
     </section>
 
+    <section id="pintGame" class="hidden" role="dialog" aria-label="Swan Blonde pint challenge">
+      <div class="pintPanel">
+        <div class="pintHead"><span>DAD'S SWAN BLONDE</span><button type="button" id="pintClose" aria-label="Close challenge">×</button></div>
+        <div class="pintInfo">A proper pint. Not a glass full of bloody foam.</div>
+        <canvas id="pintCanvas" width="620" height="380" aria-label="Animated glass filling with Swan Blonde"></canvas>
+        <div class="pintStats"><span id="pintLevel">EMPTY</span><strong id="pintHint">AIM FOR THE GOLD LINE</strong></div>
+        <div class="pintActions"><button id="pintPour" type="button">HOLD TO POUR</button><button id="pintServe" type="button">SERVE IT</button></div>
+        <div class="pintTip">Hold and release to control the pour. Don't overfill it.</div>
+      </div>
+    </section>
+
     <section id="endcard" class="hidden">
       <div class="endInner">
-        <span>VERTICAL SLICE COMPLETE</span>
-        <h2>FATS<br>IS OUTSIDE.</h2>
-        <p>The roast situation has escalated.</p>
-        <button type="button" onclick="location.reload()">PLAY IT AGAIN</button>
+        <span>CHAPTER ONE COMPLETE</span>
+        <h2>ROAST CRISIS<br>AVERTED.</h2>
+        <p>Glasses recovered. Pint served. Society barely functioning.</p>
+        <button type="button" onclick="localStorage.removeItem('penwortham-after-dark-v5-slice');location.reload()">RESTART THE NIGHT</button>
       </div>
     </section>
 

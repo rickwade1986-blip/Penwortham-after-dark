@@ -2,7 +2,7 @@ name: Verify V5 production slice
 
 on:
   push:
-    branches: ["main", "v5-production", "v5-movement-collision", "v5-visible-walk", "v5-obvious-walk", "v5-real-sprites", "v6-actual-gameplay"]
+    branches: ["main", "v5-production", "v5-movement-collision", "v5-visible-walk", "v5-obvious-walk", "v5-real-sprites", "v6-actual-gameplay", "v7-street-adventure"]
     paths:
       - "v5/**"
       - ".github/workflows/v5-verify.yml"
@@ -29,6 +29,7 @@ jobs:
       - name: Production asset gate
         run: |
           test -f v5/assets/environments/tap_interior.jpg
+          test -f v5/assets/environments/tap_exterior.jpg
           test -f v5/assets/characters/rick_master.png
           test -f v5/assets/characters/rick-side-walk.png
           test -f v5/assets/characters/rick-back-walk.png
@@ -103,11 +104,31 @@ jobs:
           grep -q 'data-v6-navigation-test="pass"' navigation.html
           ! grep -q 'data-v5-error=' navigation.html
 
+      - name: Exterior gameplay and pub entrance regression
+        run: |
+          CHROME="$(which google-chrome || which chromium || which chromium-browser)"
+          FLAGS="--headless=new --no-sandbox --disable-gpu --enable-unsafe-swiftshader --disable-dev-shm-usage --virtual-time-budget=7000"
+          timeout 70s "$CHROME" $FLAGS --dump-dom "http://127.0.0.1:8000/v5/index.html?reset=1&autotest=street-entry&ci=1" > street.html
+          grep -q 'data-v7-street="true"' street.html
+          grep -q 'data-v7-street-entry="pass"' street.html
+          grep -q 'data-v5-scene="tap"' street.html
+          ! grep -q 'data-v5-error=' street.html
+
+      - name: Swan Blonde mini-game and reward regression
+        run: |
+          CHROME="$(which google-chrome || which chromium || which chromium-browser)"
+          FLAGS="--headless=new --no-sandbox --disable-gpu --enable-unsafe-swiftshader --disable-dev-shm-usage --virtual-time-budget=8000"
+          timeout 70s "$CHROME" $FLAGS --dump-dom "http://127.0.0.1:8000/v5/index.html?reset=1&autotest=pint&ci=1" > pint.html
+          grep -q 'data-v7-pint-test="pass"' pint.html
+          grep -q 'data-v7-pint-result="perfect"' pint.html
+          ! grep -q 'data-v5-error=' pint.html
+
       - name: Capture rendered gameplay
         if: always()
         run: |
           python3 -m pip install --quiet websocket-client
           python3 tools/capture-v6-screenshot.py
+          PENWORTHAM_CAPTURE_URL="http://127.0.0.1:8000/v5/index.html?reset=1&autotest=pint-showcase" PENWORTHAM_CAPTURE_FILE=v7-swan-blonde.png python3 tools/capture-v6-screenshot.py
 
       - uses: actions/upload-artifact@v4
         if: always()
@@ -115,8 +136,11 @@ jobs:
           name: v5-production-screenshot
           path: |
             v6-tap.png
+            v7-swan-blonde.png
             smoke.html
             chain.html
             collision.html
             navigation.html
+            street.html
+            pint.html
           retention-days: 3
