@@ -39,7 +39,8 @@
     wristband:false,
     access:false,
     glasses:false,
-    sauvignon:false
+    sauvignon:false,
+    pintServed:false
   });
 
   let state = fresh();
@@ -100,7 +101,8 @@
     ui.inventory.innerHTML = [
       state.wristband ? '<span><img src="./assets/props/wristband.png" alt="">WRISTBAND</span>' : '',
       state.glasses ? '<span><img src="./assets/props/glasses.png" alt="">GLASSES</span>' : '',
-      state.sauvignon ? '<span class="wine">◯ SAUVIGNON</span>' : ''
+      state.sauvignon ? '<span class="wine">◯ SAUVIGNON</span>' : '',
+      state.pintServed ? '<span>🍺 SWAN BLONDE</span>' : ''
     ].join('');
     document.body.dataset.v5Quest = state.quest;
     document.body.dataset.v5Hero = state.hero;
@@ -112,6 +114,127 @@
     clearTimeout(toastTimer);
     toastTimer=setTimeout(()=>ui.toast.classList.add('hidden'),ms);
   }
+
+
+  const pintUI={
+    panel:document.getElementById('pintGame'),canvas:document.getElementById('pintCanvas'),
+    pour:document.getElementById('pintPour'),serve:document.getElementById('pintServe'),
+    close:document.getElementById('pintClose'),level:document.getElementById('pintLevel'),
+    hint:document.getElementById('pintHint')
+  };
+  const pint={active:false,held:false,fill:0,foam:0,last:0};
+  const pc=pintUI.canvas.getContext('2d');
+
+  function drawPint(now){
+    pc.clearRect(0,0,620,380);
+    const bg=pc.createRadialGradient(310,165,30,310,165,390);
+    bg.addColorStop(0,'#382517');bg.addColorStop(1,'#0f0c12');
+    pc.fillStyle=bg;pc.fillRect(0,0,620,380);
+    pc.fillStyle='#b88749';pc.fillRect(265,0,95,22);
+    pc.fillStyle='#efd08f';pc.fillRect(298,18,26,39);
+    pc.fillStyle='#322124';pc.fillRect(297,48,28,15);
+    const glass=()=>{pc.beginPath();pc.moveTo(210,70);pc.lineTo(414,70);
+      pc.lineTo(391,343);pc.quadraticCurveTo(312,357,235,343);pc.closePath();};
+    pc.save();glass();pc.clip();
+    if(pint.fill>.001){
+      const top=342-Math.min(1.08,pint.fill)*260;
+      const amber=pc.createLinearGradient(205,80,412,355);
+      amber.addColorStop(0,'#ffd273');amber.addColorStop(.35,'#efa738');
+      amber.addColorStop(.7,'#ad5519');amber.addColorStop(1,'#7e3b12');
+      pc.beginPath();pc.moveTo(190,355);pc.lineTo(430,355);pc.lineTo(430,top);
+      for(let x=430;x>=190;x-=4){
+        pc.lineTo(x,top+Math.sin(x*.05+now*.007)*2.8+Math.cos(x*.1-now*.004)*1.2);
+      }
+      pc.closePath();pc.fillStyle=amber;pc.fill();
+      const foamH=6+Math.min(40,pint.foam);
+      pc.fillStyle='#fff1c7';
+      pc.beginPath();pc.moveTo(195,top);pc.lineTo(425,top);
+      pc.lineTo(425,top-foamH);
+      for(let x=425;x>=195;x-=5)pc.lineTo(x,top-foamH+Math.sin(x*.09+now*.005)*2.2);
+      pc.closePath();pc.fill();
+      for(let i=0;i<33;i++){
+        const px=218+i*71%187,py=top-foamH+2+(i*23%Math.max(3,foamH));
+        pc.beginPath();pc.arc(px,py,1.3+i%3,0,Math.PI*2);
+        pc.fillStyle='rgba(255,255,244,.5)';pc.fill();
+      }
+    }
+    pc.restore();
+    glass();pc.strokeStyle='rgba(255,246,225,.85)';pc.lineWidth=6;pc.stroke();
+    pc.beginPath();pc.moveTo(225,82);pc.lineTo(248,327);
+    pc.strokeStyle='#ffebbd99';pc.lineWidth=5;pc.stroke();
+    const lineY=342-.87*260;
+    pc.beginPath();pc.moveTo(207,lineY);pc.lineTo(417,lineY);
+    pc.setLineDash([9,7]);pc.strokeStyle='#b6ff3b';pc.lineWidth=3;pc.stroke();
+    pc.setLineDash([]);pc.fillStyle='#b6ff3b';pc.font='bold 18px Arial';
+    pc.fillText('SWEET SPOT',428,lineY+6);
+    if(pint.held&&pint.fill<1.075){
+      const end=Math.max(73,342-pint.fill*260);
+      pc.beginPath();pc.moveTo(310,60);
+      pc.bezierCurveTo(317,105,306+Math.sin(now*.01)*4,145,313,end);
+      pc.strokeStyle='#ffcb6a';pc.lineWidth=8;pc.lineCap='round';pc.stroke();
+      pc.strokeStyle='#ffefb6';pc.lineWidth=2.3;pc.stroke();
+    }
+  }
+
+  function closePintGame(){
+    pint.active=false;pint.held=false;pintUI.panel.classList.add('hidden');
+  }
+  function openPintGame(){
+    if(pint.active)return;
+    pint.active=true;pint.held=false;pint.fill=0;pint.foam=0;
+    pint.last=performance.now();stick.x=stick.y=0;
+    current?.actor?.setVelocity(0,0);
+    pintUI.panel.classList.remove('hidden');
+    const loop=now=>{
+      if(!pint.active)return;
+      const dt=Math.min(.06,Math.max(0,(now-pint.last)/1000));pint.last=now;
+      if(pint.held){
+        pint.fill=Math.min(1.085,pint.fill+dt*.245);
+        pint.foam=Math.min(42,pint.foam+dt*1.55+(pint.fill>.96?dt*18:0));
+        if(pint.fill>=1.08)pint.held=false;
+      }else pint.foam=Math.max(0,pint.foam-dt*1.4);
+      drawPint(now);
+      pintUI.level.textContent=Math.round(pint.fill*100)+'% FILLED';
+      pintUI.hint.textContent=pint.fill<.77?'KEEP POURING':
+        pint.fill<.84?'NEARLY THERE':pint.fill<=.92?'SERVE NOW!':'TOO MUCH!';
+      requestAnimationFrame(loop);
+    };
+    requestAnimationFrame(loop);
+  }
+  function finishPint(){
+    if(!pint.active)return;
+    const good=pint.fill>=.82&&pint.fill<=.92&&pint.foam<28;
+    document.body.dataset.v7PintResult=good?'perfect':'missed';
+    closePintGame();
+    if(good){
+      state.pintServed=true;
+      if(state.quest===Q.GET_ACCESS){
+        state.access=true;state.quest=Q.PICK_WRISTBAND;
+      }
+      save();showToast('PERFECT SWAN BLONDE • DAD APPROVES',1450);
+      say('DAD',[
+        "Dad: That's actually a decent pint.",
+        "Rick: I'm stunned you've said something positive.",
+        "Dad: Don't get used to it."
+      ]);
+    }else{
+      showToast('DAD IS NOT IMPRESSED',1200);
+      say('DAD',[
+        pint.fill<.82?"Dad: That's half a pint, you muppet.":
+          "Dad: You pouring a pint or filling a bath?",
+        "Rick: Encouragement is a lost art in this family."
+      ]);
+    }
+  }
+  pintUI.pour.addEventListener('pointerdown',e=>{
+    e.preventDefault();pint.held=true;
+    pintUI.pour.setPointerCapture?.(e.pointerId);
+  });
+  for(const type of ['pointerup','pointercancel','lostpointercapture'])
+    pintUI.pour.addEventListener(type,()=>{pint.held=false;});
+  window.addEventListener('pointerup',()=>{pint.held=false;});
+  pintUI.serve.addEventListener('click',finishPint);
+  pintUI.close.addEventListener('click',closePintGame);
 
   function portraitFor(speaker){
     const s=String(speaker||'').toUpperCase();
@@ -685,6 +808,11 @@
         this.actor.setPosition(520,860);
       }
       if(AUTOTEST==='navigation')this.beginNavigationTest();
+      if(AUTOTEST==='pint'){
+        openPintGame();pint.fill=.87;pint.foam=5;finishPint();
+        document.body.dataset.v7PintTest=state.pintServed?'pass':'fail';
+        if(CI)setTimeout(()=>this.game.destroy(false),80);
+      }
     }
 
     addRoomLife(){
@@ -762,6 +890,9 @@
     }
 
     onDad(){
+      if(!state.pintServed && AUTOTEST!=='quest-chain'){
+        openPintGame();return;
+      }
       if(state.quest===Q.GET_ACCESS){
         say('DAD',["You're not staff.",'Rick: I know.','Dad: Just checking.']);
       }else if(state.quest===Q.DENISE){
@@ -817,7 +948,8 @@
 
       if(state.hero==='laura' && state.quest===Q.CALL_BS && this.near('will',90)){
         say('LAURA',lines.lauraBs,()=>{
-          state.quest=Q.GET_ACCESS;
+          state.quest=state.pintServed?Q.PICK_WRISTBAND:Q.GET_ACCESS;
+          if(state.pintServed)state.access=true;
           this.wristband.setVisible(true);
           this.pulse(this.wristband,0xff4fa3);
           save();
@@ -971,6 +1103,7 @@
     }
 
     update(time,dtMs){
+      if(pint.active){this.actor.body.setVelocity(0,0);return;}
       if(this.showcaseFrozen){
         this.actor.body.setVelocity(0,0);
         return;
