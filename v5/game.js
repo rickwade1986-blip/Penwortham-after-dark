@@ -93,7 +93,9 @@
   };
 
   function refreshUI(){
-    ui.objective.textContent = objectives[state.quest] || 'Cause manageable chaos';
+    ui.objective.textContent = document.body.dataset.v5Scene==='street'
+      ? (state.quest===Q.COMPLETE ? 'Find Fats. Resolve the roast emergency.' : 'Get into Tap & Vine')
+      : (objectives[state.quest] || 'Cause manageable chaos');
     ui.heroName.textContent = state.hero.toUpperCase();
     ui.heroName.style.color = state.hero === 'rick' ? '#b6ff3b' : '#ff4fa3';
     ui.ability.textContent = state.hero === 'rick' ? 'BULLSHIT' : 'CALL BS';
