@@ -655,6 +655,7 @@
       document.body.dataset.v5Assets='production';
       document.body.dataset.v5Hotspots=this.hotspots.filter(h=>h.id!=='exit').map(h=>h.id).join(',');
       document.body.dataset.v7PubDoor='true';
+      if(AUTOTEST==='street-entry' && CI)setTimeout(()=>this.game.destroy(false),90);
       document.body.dataset.v5CollisionCount=String(this.solids.length);
       document.body.dataset.v5GroundedSprites='true';
       document.body.dataset.v6ObjectiveMarker='true';
