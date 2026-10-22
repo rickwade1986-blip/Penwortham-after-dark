@@ -6,7 +6,7 @@
   const AUTOTEST = P.get('autotest') || '';
   const DEBUG = P.get('debug') === '1';
   const CI = P.get('ci') === '1';
-  const SAVE_KEY = 'penwortham-after-dark-v5-slice';
+  const SAVE_KEY = 'penwortham-after-dark-v7-adventure';
 
   const Q = Object.freeze({
     TALK_WILL:'TALK_WILL',
