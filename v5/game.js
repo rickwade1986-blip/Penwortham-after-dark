@@ -813,6 +813,9 @@
         document.body.dataset.v7PintTest=state.pintServed?'pass':'fail';
         if(CI)setTimeout(()=>this.game.destroy(false),80);
       }
+      if(AUTOTEST==='pint-showcase'){
+        openPintGame();pint.fill=.56;pint.foam=5;pint.held=true;
+      }
     }
 
     addRoomLife(){
