@@ -13,7 +13,7 @@ CHROME = shutil.which("google-chrome") or shutil.which("chromium") or shutil.whi
 if not CHROME:
     raise SystemExit("Chrome executable not found")
 PORT = 9225
-URL = "http://127.0.0.1:8000/v5/index.html?reset=1"
+URL = os.environ.get("PENWORTHAM_CAPTURE_URL", "http://127.0.0.1:8000/v5/index.html?reset=1")
 args = [
     CHROME, "--headless=new", "--no-sandbox", "--disable-gpu",
     "--enable-unsafe-swiftshader", "--disable-dev-shm-usage",
@@ -74,9 +74,10 @@ try:
     raw = base64.b64decode(capture["data"])
     if len(raw) < 100_000:
         raise RuntimeError("Screenshot suspiciously small: %s bytes" % len(raw))
-    with open("v6-tap.png", "wb") as out:
+    output = os.environ.get("PENWORTHAM_CAPTURE_FILE", "v6-tap.png")
+    with open(output, "wb") as out:
         out.write(raw)
-    print("Captured v6-tap.png: %s bytes" % len(raw))
+    print("Captured %s: %s bytes" % (output, len(raw)))
 finally:
     if sock is not None:
         sock.close()
