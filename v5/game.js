@@ -29,7 +29,7 @@
     [Q.PICK_GLASSES]:'Take your bloody glasses',
     [Q.DENISE]:'Speak to Denise before you leave',
     [Q.FATS_TEASER]:'Something has happened to FATS',
-    [Q.COMPLETE]:'Vertical slice complete'
+    [Q.COMPLETE]:'Get outside. Fats has a roast-related emergency'
   };
 
   const fresh = () => ({
@@ -221,6 +221,7 @@
     constructor(){super('Boot')}
     preload(){
       this.load.image('tap-bg','./assets/environments/tap_interior.jpg');
+      this.load.image('street-bg','./assets/environments/tap_exterior.jpg');
       const sheet={frameWidth:256,frameHeight:384};
       this.load.spritesheet('rick-front-cycle','./assets/characters/generated/rick-front-cycle.png',sheet);
       this.load.spritesheet('rick-side-cycle','./assets/characters/generated/rick-side-cycle.png',sheet);
@@ -248,7 +249,7 @@
           });
         }
       }
-      this.scene.start('Tap');
+      this.scene.start((!AUTOTEST || AUTOTEST==='street-entry') && P.get('inside')!=='1' ? 'Street' : 'Tap');
     }
   }
 
@@ -358,6 +359,165 @@
     s.shadow.setScale(1-breath*.018,1);
   }
 
+  // ACT I: A genuine second location, not another overlay over the pub.
+  // The first thing the player sees is the actual illustrated Tap exterior.
+  class Street extends Phaser.Scene {
+    constructor(){ super('Street'); }
+    create(){
+      current=this;
+      document.body.dataset.v5Ready='true';
+      document.body.dataset.v5Scene='street';
+      document.body.dataset.v7Street='true';
+      this.physics.world.setBounds(0,0,1600,900);
+      this.cameras.main.setBounds(0,0,1600,900);
+      this.cameras.main.centerOn(800,450);
+      this.cameras.main.setZoom(1);
+      this.add.image(800,450,'street-bg').setDisplaySize(1600,900).setDepth(-20);
+      const night=this.add.rectangle(800,450,1600,900,0x07102b,.10).setDepth(-15);
+
+      // Street lights and window glows pulse slowly over the painted practical lights.
+      const glow=this.add.ellipse(1065,409,475,340,0xffa957,.07).setBlendMode(Phaser.BlendModes.ADD).setDepth(-10);
+      this.tweens.add({targets:glow,alpha:{from:.025,to:.12},duration:2400,yoyo:true,repeat:-1,ease:'Sine.easeInOut'});
+      this.tweens.add({targets:night,alpha:{from:.04,to:.13},duration:3700,yoyo:true,repeat:-1});
+
+      this.actor=createActor(this,1150,830);
+      this.actor.body.setCollideWorldBounds(true);
+      this.actor.heroDir='left';
+      this.actor.visual.setDepth(70);
+
+      // The other hero follows you on the pavement, so this is Rick AND Laura's adventure.
+      const friendHero=state.hero==='rick'?'laura':'rick';
+      this.friend=this.add.sprite(1280,825,heroCycle(friendHero,'down'),0).setOrigin(.5,1).setDepth(60);
+      this.friendHero=friendHero;
+      this.friendX=1280;this.friendY=825;this.friendWalk=0;
+
+      // Oversized location reveal deliberately makes this a different scene.
+      this.locationTag=this.add.container(800,117).setDepth(110);
+      const plate=this.add.rectangle(0,0,655,118,0x090b10,.92).setStrokeStyle(2,0xf2c766,.75);
+      const line1=this.add.text(0,-18,'LEYLAND ROAD', {
+        fontFamily:'Impact, Arial Black, sans-serif',fontSize:'57px',fontStyle:'italic',color:'#f2c766'
+      }).setOrigin(.5);
+      const line2=this.add.text(0,31,'PENWORTHAM • 11:46 PM • BAD DECISIONS AHEAD', {
+        fontFamily:'Arial, sans-serif',fontSize:'19px',fontStyle:'bold',color:'#f4e9df'
+      }).setOrigin(.5);
+      this.locationTag.add([plate,line1,line2]);
+      this.time.delayedCall(2400,()=>this.tweens.add({targets:this.locationTag,alpha:0,duration:550}));
+
+      this.door={x:467,y:785,r:125,label:'ENTER TAP & VINE'};
+      this.doorRing=this.add.ellipse(this.door.x,this.door.y+5,110,34,0xb6ff3b,.10)
+        .setStrokeStyle(4,0xb6ff3b,.9).setDepth(115);
+      this.doorPrompt=this.add.text(this.door.x,633,'ENTER TAP & VINE', {
+        fontFamily:'Impact, Arial Black, sans-serif',fontSize:'26px',color:'#0b0e14',
+        backgroundColor:'#b6ff3b',padding:{x:15,y:8}
+      }).setOrigin(.5).setDepth(116);
+      this.tweens.add({targets:this.doorRing,scaleX:1.15,scaleY:1.2,alpha:.4,duration:800,yoyo:true,repeat:-1});
+
+      this.fats=null;
+      if(state.quest===Q.COMPLETE){
+        this.fats=npc(this,'fats',1130,800,225,1.3);
+        this.fats.setTint(0xffebce);
+        this.fatsHint=this.add.text(1130,548,'FATS • THE ROAST EMERGENCY',{
+          fontFamily:'Impact, Arial Black, sans-serif',fontSize:'24px',color:'#100d16',
+          backgroundColor:'#ff4fa3',padding:{x:12,y:8}
+        }).setOrigin(.5).setDepth(150);
+        this.tweens.add({targets:this.fatsHint,scaleX:1.06,scaleY:1.06,duration:850,yoyo:true,repeat:-1});
+      }
+      document.body.dataset.v7ExteriorAsset='true';
+      refreshUI();
+      this.updatePrompt();
+
+      if(AUTOTEST==='street-entry'){
+        this.actor.setPosition(585,798);
+        this.streetProbe=true;
+      }
+    }
+
+    updatePrompt(){
+      const atDoor=this.nearDoor();
+      const atFats=!!this.fats&&Phaser.Math.Distance.Between(this.actor.x,this.actor.y,1130,800)<135;
+      ui.prompt.textContent=atFats?'ACT · TALK TO FATS':
+        atDoor?'ACT · OPEN PUB DOOR':(this.fats?'FIND FATS OUTSIDE':'WALK TO THE PUB DOOR');
+      ui.prompt.classList.remove('hidden');
+      this.doorPrompt.setAlpha(this.fats?.5:(atDoor?1:.93));
+    }
+
+    nearDoor(){
+      return Phaser.Math.Distance.Between(this.actor.x,this.actor.y,this.door.x,this.door.y)<this.door.r;
+    }
+
+    doAct(){
+      if(advanceDialogue())return;
+      if(this.fats&&Phaser.Math.Distance.Between(this.actor.x,this.actor.y,1130,800)<135){
+        say('FATS',[
+          "Fats: Two places. Neither has a roast. Explain yourself.",
+          "Rick: We are literally standing outside the pub.",
+          "Laura: That has never stopped him turning lunch into a crisis.",
+          "Fats: It's not lunch. It's a matter of principle."
+        ],()=>{
+          document.body.dataset.v7FatsMet='true';
+          ui.endcard.classList.remove('hidden');
+        });
+        return;
+      }
+      if(this.nearDoor()){
+        document.body.dataset.v7StreetEntry='pass';
+        this.cameras.main.flash(240,246,204,145);
+        this.scene.start('Tap');
+      }else showToast(this.fats?'FATS IS OVER THERE':'GET TO THE GREEN DOOR MARKER',1000);
+    }
+
+    swap(){
+      if(dialogue)return;
+      state.hero=state.hero==='rick'?'laura':'rick';
+      this.friendHero=state.hero==='rick'?'laura':'rick';
+      this.friend.setTexture(heroCycle(this.friendHero,'down'),0);
+      applyHero(this.actor,state.hero,this.actor.heroDir||'down',false,0);
+      save();
+      showToast('PLAYING AS '+state.hero.toUpperCase(),600);
+    }
+
+    useAbility(){
+      showToast(state.hero==='laura'?'SAVE IT FOR WILL':'THERE IS NOBODY TO BULLSHIT OUT HERE',900);
+    }
+
+    update(time,dtMs){
+      if(dialogue){this.actor.setVelocity(0,0);return;}
+      const dt=Math.min(dtMs/1000,.034);
+      let x=stick.x,y=stick.y;
+      for(const k of held){const axis=movementKeys[k];if(axis){x+=axis[0];y+=axis[1];}}
+      if(this.streetProbe){x=-1;y=0;}
+      const len=Math.hypot(x,y);
+      if(len>1){x/=len;y/=len;}
+      const moving=Math.hypot(x,y)>.06;
+      const direction=moving?(Math.abs(x)>Math.abs(y)?(x<0?'left':'right'):(y<0?'up':'down')):this.actor.heroDir;
+      this.actor.setVelocity(x*280,y*190);
+      // Pavement is walkable; the building and the road are not.
+      this.actor.y=Phaser.Math.Clamp(this.actor.y,715,868);
+      this.actor.x=Phaser.Math.Clamp(this.actor.x,85,1505);
+      applyHero(this.actor,state.hero,direction,moving,dt);
+      this.actor.visual.setDepth(80+this.actor.y*.01);
+      this.actor.shadow.setDepth(79+this.actor.y*.01);
+
+      const dx=this.actor.x+105-this.friendX,dy=this.actor.y+14-this.friendY;
+      const dist=Math.hypot(dx,dy);
+      if(dist>75){this.friendX+=dx*.065;this.friendY+=dy*.065;}
+      this.friendX=Phaser.Math.Clamp(this.friendX,80,1520);
+      this.friendY=Phaser.Math.Clamp(this.friendY,715,865);
+      const fd=dist>80?(Math.abs(dx)>Math.abs(dy)?(dx<0?'left':'right'):(dy<0?'up':'down')):'down';
+      const friendTex=heroCycle(this.friendHero,fd);
+      if(this.friend.texture.key!==friendTex){this.friend.stop();this.friend.setTexture(friendTex,0);}
+      if(dist>80)this.friend.play(heroAnim(this.friendHero,fd),true);
+      else{this.friend.stop();this.friend.setFrame(0);}
+      const size=heroSize(this.friendHero),persp=perspectiveAt(this.friendY);
+      this.friend.setFlipX(fd==='left');
+      this.friend.setDisplaySize(size.w*persp*.89,size.h*persp*.89);
+      this.friend.setPosition(this.friendX,this.friendY).setDepth(78+this.friendY*.01);
+
+      this.updatePrompt();
+      if(this.streetProbe&&this.nearDoor()){this.streetProbe=false;this.doAct();}
+    }
+  }
+
   class Tap extends Phaser.Scene {
     constructor(){super('Tap')}
 
@@ -454,6 +614,9 @@
       if(this.glasses.visible)this.pulse(this.glasses,0xb6ff3b);
 
       this.hotspots=[
+        {id:'exit',x:785,y:844,r:115,label:'PUB DOOR',
+          enabled:()=>state.quest===Q.COMPLETE,
+          act:()=>this.scene.start('Street')},
         {id:'will',x:525,y:514,r:118,label:'WILL',act:()=>this.onWill()},
         {id:'denise',x:1036,y:548,r:122,label:'DENISE',act:()=>this.onDenise()},
         {id:'dad',x:1280,y:824,r:118,label:'DAD',act:()=>this.onDad()},
@@ -490,7 +653,8 @@
       document.body.dataset.v5Ready='true';
       document.body.dataset.v5Scene='tap';
       document.body.dataset.v5Assets='production';
-      document.body.dataset.v5Hotspots=this.hotspots.map(h=>h.id).join(',');
+      document.body.dataset.v5Hotspots=this.hotspots.filter(h=>h.id!=='exit').map(h=>h.id).join(',');
+      document.body.dataset.v7PubDoor='true';
       document.body.dataset.v5CollisionCount=String(this.solids.length);
       document.body.dataset.v5GroundedSprites='true';
       document.body.dataset.v6ObjectiveMarker='true';
@@ -643,7 +807,7 @@
       say('FATS',lines.fats,()=>{
         state.quest=Q.COMPLETE;
         save();
-        ui.endcard.classList.remove('hidden');
+        showToast('FATS IS WAITING OUTSIDE!',1400);
       });
     }
 
@@ -745,7 +909,8 @@
         [Q.PICK_WRISTBAND]:'display',
         [Q.RETURN_WILL]:'will',
         [Q.PICK_GLASSES]:'glasses',
-        [Q.DENISE]:'denise'
+        [Q.DENISE]:'denise',
+        [Q.COMPLETE]:'exit'
       }[state.quest];
       return this.hotspots.find(h=>h.id===id)||null;
     }
@@ -769,7 +934,8 @@
           :state.quest===Q.PICK_WRISTBAND?'OPEN DISPLAY'
           :state.quest===Q.RETURN_WILL?'RETURN WRISTBAND'
           :state.quest===Q.PICK_GLASSES?'TAKE GLASSES'
-          :state.quest===Q.DENISE?'SPEAK TO DENISE':'TALK TO WILL';
+          :state.quest===Q.DENISE?'SPEAK TO DENISE'
+          :state.quest===Q.COMPLETE?'GO OUTSIDE':'TALK TO WILL';
         this.beaconLabel.setText(special);
         const pink=[Q.CALL_BS,Q.DENISE].includes(state.quest);
         const color=pink?0xff4fa3:0xb6ff3b;
@@ -924,7 +1090,7 @@
     scale:{mode:Phaser.Scale.FIT,autoCenter:Phaser.Scale.CENTER_BOTH,width:1600,height:900},
     physics:{default:'arcade',arcade:{gravity:{x:0,y:0},debug:false}},
     render:{antialias:true,roundPixels:false},
-    scene:[Boot,Tap]
+    scene:[Boot,Street,Tap]
   };
 
   new Phaser.Game(config);
