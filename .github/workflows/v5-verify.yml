@@ -114,6 +114,15 @@ jobs:
           grep -q 'data-v5-scene="tap"' street.html
           ! grep -q 'data-v5-error=' street.html
 
+      - name: Swan Blonde mini-game and reward regression
+        run: |
+          CHROME="$(which google-chrome || which chromium || which chromium-browser)"
+          FLAGS="--headless=new --no-sandbox --disable-gpu --enable-unsafe-swiftshader --disable-dev-shm-usage --virtual-time-budget=8000"
+          timeout 70s "$CHROME" $FLAGS --dump-dom "http://127.0.0.1:8000/v5/index.html?reset=1&autotest=pint&ci=1" > pint.html
+          grep -q 'data-v7-pint-test="pass"' pint.html
+          grep -q 'data-v7-pint-result="perfect"' pint.html
+          ! grep -q 'data-v5-error=' pint.html
+
       - name: Capture rendered gameplay
         if: always()
         run: |
@@ -131,4 +140,5 @@ jobs:
             collision.html
             navigation.html
             street.html
+            pint.html
           retention-days: 3
