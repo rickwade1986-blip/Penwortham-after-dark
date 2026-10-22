@@ -46,3 +46,34 @@ body[data-v5-ready="true"] #game:before{
   .brand{margin-left:clamp(0px,2.2vw,28px)}
   .hero{margin-right:clamp(0px,2.2vw,28px)}
 }
+
+/* Standalone animated pint challenge: a real interactive mini-game, not the HUD. */
+#pintGame{position:fixed;inset:0;z-index:90;display:grid;place-items:center;
+  background:radial-gradient(ellipse at 50% 50%,#301a13f5,#050609f8 73%);
+  touch-action:none}
+.pintPanel{width:min(96vw,725px);max-height:96dvh;overflow:auto;
+  padding:clamp(11px,2vh,20px);border:2px solid #c58c47;border-radius:18px;
+  background:linear-gradient(145deg,#171014,#100c12 70%);box-shadow:0 28px 110px #000e}
+.pintHead{display:flex;justify-content:space-between;align-items:center;gap:12px;
+  color:#f2c766;font:900 italic clamp(21px,4vw,34px)/1 Impact,"Arial Black",sans-serif}
+#pintClose{width:38px;height:38px;border:1px solid #ffffff50;border-radius:50%;
+  background:#2e1e26;color:#fff;font-size:25px}
+.pintInfo{font-weight:700;color:#eddfc9;font-size:clamp(11px,1.8vw,15px);margin:4px 0}
+#pintCanvas{width:100%;height:min(42vh,360px);object-fit:contain;display:block;
+  background:radial-gradient(ellipse at 50% 60%,#25190e,#100c13 75%);
+  border:1px solid #e9b46f33;border-radius:12px}
+.pintStats{display:flex;justify-content:space-between;align-items:center;
+  color:#f2c766;font:900 13px/1.4 Arial,sans-serif;letter-spacing:.09em;margin:8px 0}
+#pintHint{color:#b6ff3b}
+.pintActions{display:grid;grid-template-columns:1.6fr 1fr;gap:12px}
+.pintActions button{min-height:clamp(40px,10vh,62px);border:0;border-radius:12px;
+  font:900 italic clamp(17px,3vw,25px)/1 Impact,"Arial Black",sans-serif}
+#pintPour{background:linear-gradient(120deg,#fbe09b,#e5a840);color:#20150d;
+  box-shadow:0 5px 0 #6d4320;touch-action:none}
+#pintPour:active{transform:translateY(3px);box-shadow:0 2px 0 #6d4320}
+#pintServe{background:#b6ff3b;color:#141d06}
+.pintTip{color:#b6a8a7;font-size:11px;margin-top:9px;text-align:center}
+@media (max-height:440px){.pintPanel{width:min(92vw,730px);padding:7px 13px}
+  #pintCanvas{height:32vh}.pintTip{display:none}.pintHead{font-size:22px}
+  .pintInfo{margin:0 0 3px}.pintStats{margin:3px 0}
+  .pintActions button{min-height:35px}}
